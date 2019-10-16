@@ -11,12 +11,12 @@ commands:
     description: 'for all the commands use /change_me_plugin_name help'
     usage: 'change_me_plugin_name has not started correctly, check the log file (or console) and correct any errors.'
     aliases: []
-    permissions:
-      change_me_plugin_name.*:
-        description: 'Give access to all commands of McTemplate'
-        default: op
-        children:
-          change_me_plugin_name.reload: true
-      change_me_plugin_name.reload:
-        description: 'reload plugin config files'
-        default: op
+permissions:
+  change_me_plugin_name.*:
+    description: 'Give access to all commands of McTemplate'
+    default: op
+    children:
+      change_me_plugin_name.reload: true
+  change_me_plugin_name.reload:
+    description: 'reload plugin config files'
+    default: op
