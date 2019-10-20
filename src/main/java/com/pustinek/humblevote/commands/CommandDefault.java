@@ -1,4 +1,4 @@
-package com.pustinek.mctemplate.commands;
+package com.pustinek.humblevote.commands;
 
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.command.Command;

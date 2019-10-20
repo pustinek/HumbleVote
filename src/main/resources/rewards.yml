@@ -1,0 +1,24 @@
+rewards:
+  basic_vote:
+      requirements: []
+      commands: []
+      money: 4000
+      player_message: '&6&lYou voted on %vote_site%!'
+      brodcast: "something annoying"
+  milestone_50:
+    claimable: true
+    vote_requirements: 50
+    requirements: [] #Will be implemented in the future
+    commands:
+      - money %player% 5000
+      - lp user %player% permission set treasure.vote
+  milestone_100:
+    claimable: true
+    vote_requirements: 100
+    requirements: []
+    commands:
+      - "money %player% 30000"
+      - "lp user %player% permission set voting.milestone.50"
+    player_message: '&6&lYou voted on %vote_site%!'
+    brodcast: "%player.display_name% reached the 100 vote milestone"
+

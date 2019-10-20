@@ -1,22 +1,20 @@
-#TODO [CHANGE_ME] - replace "change_me_plugin_name" with your plugin name
-name: change_me_plugin_name
+name: HumbleVote
 version: ${project.version}
-#TODO [CHANGE_ME] - change main value
-main: com.pustinek.mctemplate.Main
+main: com.pustinek.humblevote.Main
 api-version: "1.13"
 authors: [Pustinek]
-description: change_me_description
+description: "Voting plugin for minecraft"
 commands:
-  change_me_plugin_name:
-    description: 'for all the commands use /change_me_plugin_name help'
+  humblevote:
+    description: 'for all the commands use /HumbleVote help'
     usage: 'change_me_plugin_name has not started correctly, check the log file (or console) and correct any errors.'
     aliases: []
 permissions:
-  change_me_plugin_name.*:
+  humblevote.*:
     description: 'Give access to all commands of McTemplate'
     default: op
     children:
-      change_me_plugin_name.reload: true
-  change_me_plugin_name.reload:
+      humblevote.reload: true
+  humblevote.reload:
     description: 'reload plugin config files'
     default: op

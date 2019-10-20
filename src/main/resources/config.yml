@@ -1,2 +1,25 @@
-configVersion: "1.0"
-pluginMessagePrefix: "[mc-template]"
+plugin_message_prefix: "[HumbleVote]"
+debug: true
+
+votes:
+  # face votes are used mostly for development purposes, and should  be FALSE in production server
+  fake_votes: false
+
+sql:
+  # SQLite, MySQL are supported databases
+  driver: SQLite
+  # Database server address.
+  address: localhost:3306
+  # Database name, username and password.
+  database: 'groupchat'
+  username: ''
+  password: ''
+  table_prefix: 'groupchat_'
+  # ...interval in seconds, when the database should be pinged,
+  # to keep the connection alive
+  # You can set this to '0' to disable the ping interval
+  ping_interval: 3600
+  # Database engine. Only applies to MySQL.
+  engine: InnoDB
+
+  options: 'useSSL=false&serverTimezone=UTC'

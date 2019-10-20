@@ -1,14 +1,12 @@
-package com.pustinek.mctemplate.managers;
+package com.pustinek.humblevote.commands;
 
-import com.pustinek.mctemplate.Main;
-import com.pustinek.mctemplate.commands.CommandDefault;
-import com.pustinek.mctemplate.commands.CommandExample;
-import com.pustinek.mctemplate.utils.Permissions;
+import com.pustinek.humblevote.Main;
+import com.pustinek.humblevote.utils.Manager;
+import com.pustinek.humblevote.utils.Permissions;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
-
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,8 +22,10 @@ public class CommandManager extends Manager implements CommandExecutor, TabCompl
 
         commands = new ArrayList<>();
         //ADD: Here you add the commands that you want to use..
-        commands.add(new CommandExample(plugin));
-
+        commands.add(new CommandReload(plugin));
+        commands.add(new CommandTest(plugin));
+        commands.add(new CommandVoting(plugin));
+        commands.add(new CommandStats(plugin));
 
         plugin.getCommand(Permissions.PLUGIN_NAME).setExecutor(this);
         plugin.getCommand(Permissions.PLUGIN_NAME).setTabCompleter(this);

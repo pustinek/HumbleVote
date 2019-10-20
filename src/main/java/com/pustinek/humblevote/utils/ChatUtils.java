@@ -1,4 +1,4 @@
-package com.pustinek.mctemplate.utils;
+package com.pustinek.humblevote.utils;
 
 import org.bukkit.ChatColor;
 

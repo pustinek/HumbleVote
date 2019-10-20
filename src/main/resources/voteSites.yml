@@ -1,0 +1,40 @@
+#
+# Reward for any site
+#
+vote_sites:
+  vote_1:
+    enabled: true
+    # vote_url will be displayed when you click on the icon in GUI
+    vote_url:
+      - "=================="
+      - "DogeCraft.net/vote1"
+      - "=================="
+    vote_cooldown: 1440
+    rewards:
+      - basic_vote
+    service_site: dogecraft-wiki
+
+    gui:
+      name: Vote_1
+      enabled_icon: GREEN_STAINED_GLASS_PANE
+      disabled_icon: RED_STAINED_GLASS_PANE
+      lore:
+        - "vote here one"
+
+  vote_2:
+    enabled: true
+    # vote_url will be displayed when you click on the icon in GUI
+    vote_url:
+      - "=================="
+      - "DogeCraft.net/vote1"
+      - "=================="
+    vote_cooldown: 1440
+    rewards:
+      - basic_vote
+    service_site: Minecraft-Server.net
+    gui:
+      name: Vote_1
+      enabled_icon: GREEN_STAINED_GLASS_PANE
+      disabled_icon: RED_STAINED_GLASS_PANE
+      lore:
+        - "vote here one"
