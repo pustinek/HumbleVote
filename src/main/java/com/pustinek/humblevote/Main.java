@@ -4,23 +4,31 @@ import com.pustinek.humblevote.commands.CommandManager;
 import com.pustinek.humblevote.configs.ConfigManager;
 import com.pustinek.humblevote.listeners.OnVoteListener;
 import com.pustinek.humblevote.listeners.PlayerListener;
+import com.pustinek.humblevote.placeholders.Placeholders;
 import com.pustinek.humblevote.sql.Database;
 import com.pustinek.humblevote.sql.MySQL;
 import com.pustinek.humblevote.sql.SQLite;
+import com.pustinek.humblevote.time.TimeManager;
 import com.pustinek.humblevote.utils.Callback;
-import com.pustinek.humblevote.utils.ChatUtils;
 import com.pustinek.humblevote.utils.Manager;
+import com.pustinek.humblevote.voteNotifications.VoteNotificationManager;
+import com.pustinek.humblevote.voteReminder.VoteReminderManager;
 import com.pustinek.humblevote.voteSites.VoteSitesManager;
-import com.pustinek.humblevote.voteStatistics.VoteStatisticsManager;
+import com.pustinek.humblevote.voteStatistics.PlayerVoteStatisticsManager;
 import com.pustinek.humblevote.voting.VoteManager;
 import com.pustinek.humblevote.votingRewards.RewardManager;
 import fr.minuskube.inv.InventoryManager;
+import me.wiefferink.interactivemessenger.processing.Message;
+import me.wiefferink.interactivemessenger.source.LanguageManager;
+import net.milkbowl.vault.economy.Economy;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -31,6 +39,8 @@ public final class Main extends JavaPlugin {
     private static Logger logger;
 
     private static Main plugin;
+    // Vault economy
+    private static Economy econ = null;
     // Managers:
     private static Set<Manager> managers = new HashSet<>();
     private static CommandManager commandManager = null;
@@ -39,7 +49,10 @@ public final class Main extends JavaPlugin {
     private static RewardManager rewardManager = null;
     private static InventoryManager inventoryManager = null;
     private static VoteSitesManager voteSitesManager = null;
-    private static VoteStatisticsManager voteStatisticsManager = null;
+    private static PlayerVoteStatisticsManager voteStatisticsManager = null;
+    private static VoteNotificationManager notificationManager = null;
+    private static TimeManager timeManager = null;
+    private static VoteReminderManager voteReminderManager = null;
 
     private static Database databaseMySQL = null;
     private static Database databaseSQLite = null;
@@ -55,33 +68,49 @@ public final class Main extends JavaPlugin {
         plugin = this;
         // Plugin startup logic
 
-        //load managers
-
+        boolean econIsReady = setupEconomy();
+        if(econIsReady) {
+            logger.info("Successfully hoked into vault - economy ");
+        }
 
         // Load config manager first ->
-        configManager = new ConfigManager(this);
-        managers.add(configManager);
+        if(configManager == null) {
+            configManager = new ConfigManager(this);
+            managers.add(configManager);
+        }
+
 
         initDatabases();
         loadManagers();
-        initializeVotes();
         registerListeners();
+
+        if(Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null){
+            new Placeholders(this).register();
+        }
+
+        LanguageManager languageManager = new LanguageManager(
+                this,                                  // The plugin (used to get the languages bundled in the jar file)
+                "languages",                           // Folder where the languages are stored
+                getConfig().getString("language"),     // The language to use indicated by the plugin user
+                "EN",                                  // The default language, expected to be shipped with the plugin and should be complete, fills in gaps in the user-selected language
+                Collections.singletonList(getConfigManager().getPluginMessagePrefix()) // Chat prefix to use with Message#prefix(), could of course come from the config file
+        );
+
 
     }
 
     @Override
     public void onDisable() {
         // Plugin shutdown logic
-        Main.debug("On Disable !!");
         Main.getVoteManager().saveAllQueuedVotesToDatabase(false);
-        Main.debug("Votes should be saved to Database");
+        Main.getVoteStatisticsManager().saveAllPlayerVoteStatsToDatabase(false);
     }
 
     /**
      * Print a warning to the console.
      * @param message The message to print
      */
-    public static void warrning(String message) {
+    public static void warning(String message) {
         logger.warning(message);
     }
 
@@ -95,23 +124,25 @@ public final class Main extends JavaPlugin {
     }
 
     /**
-     * Send message to sender, without plugin prefix
+     * Send a message to a target without a prefix.
      *
-     * @param sender  the one to which send the message
-     * @param message message to be sent
+     * @param target       The target to send the message to
+     * @param key          The key of the language string
+     * @param replacements The replacements to insert in the message
      */
-    public static void messageNoPrefix(CommandSender sender, String message) {
-        sender.sendMessage(ChatUtils.chatColor(message));
+    public static void messageNoPrefix(Object target, String key, Object... replacements) {
+        Message.fromKey(key).replacements(replacements).send(target);
     }
 
     /**
-     * Send message to sender with plugin prefix
+     * Send a message to a target, prefixed by the default chat prefix.
      *
-     * @param sender  the one to which send the message
-     * @param message message to be sent
+     * @param target       The target to send the message to
+     * @param key          The key of the language string
+     * @param replacements The replacements to insert in the message
      */
-    public static void message(CommandSender sender, String message) {
-        sender.sendMessage(ChatUtils.chatColor(configManager.getPluginMessagePrefix()) + ChatUtils.chatColor(message));
+    public static void message(Object target, String key, Object... replacements) {
+        Message.fromKey(key).prefix().replacements(replacements).send(target);
     }
 
     /**
@@ -150,9 +181,9 @@ public final class Main extends JavaPlugin {
         }
         return voteSitesManager;
     }
-    public static VoteStatisticsManager getVoteStatisticsManager() {
+    public static PlayerVoteStatisticsManager getVoteStatisticsManager() {
         if(voteStatisticsManager == null) {
-            voteStatisticsManager = new VoteStatisticsManager(plugin);
+            voteStatisticsManager = new PlayerVoteStatisticsManager(plugin);
             managers.add(voteStatisticsManager);
         }
         return voteStatisticsManager;
@@ -172,9 +203,37 @@ public final class Main extends JavaPlugin {
         }
         return voteManager;
     }
+    public static TimeManager getTimeManager() {
+        if(timeManager == null) {
+            timeManager = new TimeManager(plugin);
+            managers.add(timeManager);
+        }
+        return timeManager;
+    }
+
+    public static VoteNotificationManager getNotificationManager() {
+        if(notificationManager == null) {
+            notificationManager = new VoteNotificationManager(plugin);
+            managers.add(notificationManager);
+        }
+        return notificationManager;
+    }
+
+    public static VoteReminderManager getVoteReminderManager() {
+        if(voteReminderManager == null) {
+            voteReminderManager = new VoteReminderManager(plugin);
+            managers.add(voteReminderManager);
+        }
+        return voteReminderManager;
+    }
+
 
     public static RewardManager getRewardManager() {
         return rewardManager;
+    }
+
+    public static Economy getEconomy() {
+        return econ;
     }
 
     private void registerListeners() {
@@ -202,17 +261,29 @@ public final class Main extends JavaPlugin {
             managers.add(voteSitesManager);
         }
         if(voteSitesManager == null) {
-            voteStatisticsManager = new VoteStatisticsManager(this);
+            voteStatisticsManager = new PlayerVoteStatisticsManager(this);
             managers.add(voteStatisticsManager);
         }
-
-
-
+        if(notificationManager == null) {
+            notificationManager = new VoteNotificationManager(this);
+            managers.add(notificationManager);
+        }
+        if(timeManager == null) {
+            timeManager = new TimeManager(this);
+            managers.add(timeManager);
+        }
+        if(voteReminderManager == null) {
+            voteReminderManager = new VoteReminderManager(this);
+            managers.add(voteReminderManager);
+        }
 
         inventoryManager = new InventoryManager(this);
         inventoryManager.init();
+    }
 
 
+    public static void reloadManagers() {
+        managers.forEach(Manager::reload);
     }
 
     private void initDatabases() {
@@ -240,6 +311,14 @@ public final class Main extends JavaPlugin {
                 super.onResult(result);
                 Main.debug("Success connection and reloading votes");
                 Main.getVoteStatisticsManager().loadAllPlayerVoteStatisticsFromDatabase();
+
+                new BukkitRunnable(){
+                    @Override
+                    public void run() {
+                        Main.getVoteStatisticsManager().saveAllPlayerVoteStatsToDatabase(true);
+                        Main.getVoteManager().saveAllQueuedVotesToDatabase(true);
+                    }
+                }.runTaskTimer(plugin, 1200, 1200);
             }
 
             @Override
@@ -252,7 +331,16 @@ public final class Main extends JavaPlugin {
     }
 
 
-    private void initializeVotes() {
-        Main.getVoteManager().reloadVotes();
+    private boolean setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            return false;
+        }
+        econ = rsp.getProvider();
+        return true;
     }
+
 }

@@ -10,7 +10,7 @@ public class ChatUtils {
         return ChatColor.translateAlternateColorCodes('&', s);
     }
 
-    static List<String> chatColor(List<String> lore) {
+    public static List<String> chatColor(List<String> lore) {
         return lore.stream().map(ChatUtils::chatColor).collect(Collectors.toList());
     }
 }

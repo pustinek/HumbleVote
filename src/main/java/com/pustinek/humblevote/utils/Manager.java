@@ -9,4 +9,12 @@ public abstract class Manager {
         // To override by extending classes
     }
 
+    /**
+     * Called on reload of config files
+     */
+    public void reload() {
+
+    }
+
+
 }

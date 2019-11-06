@@ -14,8 +14,6 @@ import java.util.ArrayList;
 
 public class VotingGUI implements InventoryProvider {
 
-
-
     @Override
     public void init(Player player, InventoryContents inventoryContents) {
 
@@ -28,7 +26,7 @@ public class VotingGUI implements InventoryProvider {
             ItemStack is = voteSite.buildGUI(player,playerVoteStats);
             items[i] = ClickableItem.of(is, e -> {
                 if(e.isLeftClick()) {
-                    voteSite.getVote_url().forEach(url -> player.sendMessage(ChatUtils.chatColor(url)));
+                    voteSite.getVoteURL().forEach(url -> player.sendMessage(ChatUtils.chatColor(url)));
                 }
             });
             inventoryContents.set(0,i, items[i]);

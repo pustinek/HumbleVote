@@ -6,16 +6,20 @@ public class QueuedVote {
     private String username;
     private String address;
     private String timestamp;
+    private String localTimestamp;
     private boolean isFake;
     private Integer cacheIndex = -1;
 
-    public QueuedVote(String address, String serviceName, String username, String timestamp, boolean isFake) {
+    public QueuedVote(String address, String serviceName, String username, String timestamp, String localTimestamp, boolean isFake) {
         this.address = address;
         this.serviceName = serviceName;
         this.username = username;
         this.timestamp = timestamp;
+        this.localTimestamp = localTimestamp;
         this.isFake = isFake;
     }
+
+
 
     public String  getServiceName() {
         return serviceName;
@@ -27,6 +31,10 @@ public class QueuedVote {
 
     public String getTimestamp() {
         return timestamp;
+    }
+
+    public String getLocalTimestamp() {
+        return localTimestamp;
     }
 
     public String getAddress() {

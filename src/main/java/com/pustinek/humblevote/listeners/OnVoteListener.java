@@ -11,7 +11,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
-import java.util.Iterator;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 public class OnVoteListener implements Listener {
 
@@ -26,64 +27,64 @@ public class OnVoteListener implements Listener {
     public void onVoteEvent(VotifierEvent event) {
         Vote vote = event.getVote();
         final String voteSite = vote.getServiceName();
-        final String IP = vote.getAddress();
         final String voteUsername = vote.getUsername().trim();
 
         if (voteUsername.length() == 0) {
-            plugin.getLogger().warning("No name from vote on " + voteSite);
+            Main.debug("No specified name from vote on " + voteSite);
             return;
         }
 
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, new Runnable() {
-            @Override
-            public void run() {
-
-                // check if vote is valid before processing it further
-
-                    // Check if the vote sent here is fake / not specified in the voteSites.yml
-                    Iterator<VoteSite> iterator = Main.getVoteSitesManager().getVoteSites().iterator();
-                    boolean isFakeVote = true;
-                    for (Iterator<VoteSite> it = iterator; it.hasNext();) {
-                        VoteSite vs = it.next();
-                        //Main.debug("=== Comparing -> " + vs.getService_site() +" | " + vote.getServiceName());
-                        if(vs.isEnabled() && vs.getService_site().equalsIgnoreCase(vote.getServiceName())) isFakeVote = false;
-                    }
-
-                    QueuedVote queuedVote = new QueuedVote(
-                        vote.getAddress(),
-                        vote.getServiceName(),
-                        vote.getUsername(),
-                        vote.getTimeStamp(),
-                            isFakeVote
-                );
+                // Check if the vote sent here is fake / not specified in the voteSites.yml
+                VoteSite vs = Main.getVoteSitesManager().getVoteSites().stream().filter(voteSite1 -> voteSite1.getService_site().equalsIgnoreCase(vote.getServiceName())).findAny().orElse(null);
+                boolean isFakeVote = false;
 
 
-                    /*Main.debug(
-                        "Vote was received from website " +
-                                queuedVote.getAddress()+
-                        ", voted by username " + queuedVote.getUsername() +
-                                ", and was processed as " + (isFakeVote ? "FAKE" : "TRUSTWORTHY")
-                );*/
-
-                if(!Main.getConfigManager().isProccessFakeVotes() && isFakeVote) {
-                    Main.debug("Vote is being discarded as it's a FAKE vote !" );
+                if(vs == null) {
+                    Main.debug("VotingSite with the service name (" + vote.getServiceName() + ") not specified, and is being processed as fake VOTE");
+                    isFakeVote = true;
+                } else if (!vs.isEnabled()) {
+                    Main.debug("VotingSite with the service name (" + vote.getServiceName() + ") is disabled in configs, ignoring VOTE");
                     return;
                 }
 
-                VoteManager.receivedVotes++;
-                queuedVote.setCacheIndex(VoteManager.receivedVotes);
+                if(!Main.getConfigManager().isProcessFakeVotes() && isFakeVote) {
+                    Main.debug("Vote is being discarded as it's FAKE");
+                    return;
+                }
+
+                LocalDateTime localTime = LocalDateTime.now();
+                long localEpoch = localTime.toEpochSecond(ZoneOffset.UTC);
+
+                QueuedVote queuedVote = new QueuedVote(
+                    vote.getAddress(),
+                    vote.getServiceName(),
+                    vote.getUsername(),
+                    vote.getTimeStamp(),
+                       Long.toString(localEpoch),
+                        isFakeVote
+                );
+
+             Main.debug(
+                    "Vote was received from website " +
+                            queuedVote.getAddress()+
+                    ", voted by username " + queuedVote.getUsername() +
+                            ", and was processed as " + (isFakeVote ? "FAKE" : "TRUSTWORTHY")
+            );
+
+
+
+                VoteManager.receivedVotes.getAndIncrement();
+                // Set cache index, it's just being used for reference when saving to database
+                queuedVote.setCacheIndex(VoteManager.receivedVotes.get());
 
                 Player player = Bukkit.getPlayer(vote.getUsername());
+
                 if(player != null && player.isOnline()) {
                     //Process vote
                     Main.getVoteManager().processPlayerVote(queuedVote, player);
+
                 }else{
                     Main.getVoteManager().addVoteToCache(queuedVote);
                 }
-            }
-        });
-
     }
-
-
 }

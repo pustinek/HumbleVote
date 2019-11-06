@@ -49,4 +49,9 @@ public class MySQL extends Database {
     String getQueryCreateTableQueuedVotes() {
         return null;
     }
+
+    @Override
+    String getQueryCreateTableRewards() {
+        return null;
+    }
 }

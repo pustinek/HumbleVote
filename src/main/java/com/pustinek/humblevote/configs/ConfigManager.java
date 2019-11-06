@@ -4,25 +4,47 @@ import com.pustinek.humblevote.Main;
 import com.pustinek.humblevote.sql.DatabaseConfig;
 import com.pustinek.humblevote.utils.Manager;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 
-import java.io.File;
-import java.io.IOException;
+import java.time.ZoneId;
 
 public class ConfigManager extends Manager {
+
+
     private final Main plugin;
-    private FileConfiguration config;
+    private static FileConfiguration config;
     public static boolean isDebug = true;
 
     private String pluginMessagePrefix = "[HumbleVote] ";
-    private boolean proccessFakeVotes = false;
 
+    //Database-section variables
     private DatabaseConfig databaseConfig;
 
-    //Config variables
-    private String configVersion;
+    //Votes-section variables
+    private boolean processFakeVotes = false;
+    private String notificationBroadcastMessage = "";
+    private Integer notificationWaitTime = 1200;
+    private boolean notificationBroadcastEnabled = true;
+    private ZoneId zoneId = ZoneId.systemDefault();
+
+    private boolean voteReminderEnabled;
+    private boolean voteReminderOnJoin;
+    private int voteReminderRepeat;
+    private String voteReminderMessage;
+    private boolean voteReminderDisableOnAllVotes;
+
+
+
+    //Development-section variables
+    public boolean devEnabled = false;
+    public int devYear = 2019;
+    public int devMonth = 12;
+    public int devDay = 1;
+    public int devHour = 12;
+    public int devMinute = 12;
+    public String devZoneOffset = "+00:00";
+
+
 
     public ConfigManager(Main plugin) {
 
@@ -56,6 +78,7 @@ public class ConfigManager extends Manager {
 
         loadSectionVotes(config.getConfigurationSection("votes"));
         loadSectionSQL(config.getConfigurationSection("sql"));
+        loadSectionDevelopment(config.getConfigurationSection("development"));
     }
 
     private void loadSectionSQL(ConfigurationSection section) {
@@ -88,34 +111,54 @@ public class ConfigManager extends Manager {
             Main.error("failed to load votes section in config.yml !");
             return;
         }
-        proccessFakeVotes = section.getBoolean("fake_votes", false);
+        processFakeVotes = section.getBoolean("fake_votes", false);
+        // ZoneID
+        String timezoneIdAsString = section.getString("timezone_id", "UTC");
+        zoneId = ZoneId.of(timezoneIdAsString);
+
+        // vote_notification section:
+        ConfigurationSection notificationCS = section.getConfigurationSection("vote_notification");
+        if(notificationCS == null) {
+            Main.warning("vote_notification is missing in config.yml file !");
+            return;
+        }
+        notificationBroadcastEnabled = notificationCS.getBoolean("queued_broadcast", false);
+        notificationWaitTime = notificationCS.getInt("queued_broadcast_wait_time", 1200);
+        notificationBroadcastMessage = notificationCS.getString("broadcast_message", "Player has voted ");
+
+        // vote_reminder section:
+        ConfigurationSection reminderCS = section.getConfigurationSection("vote_reminder");
+        if(reminderCS == null) {
+            Main.warning("vote_reminder section is missing in config.yml file !");
+            return;
+        }
+
+        voteReminderEnabled = reminderCS.getBoolean("enabled", true);
+        voteReminderOnJoin = reminderCS.getBoolean("on_join", true);
+        voteReminderRepeat = reminderCS.getInt("repeat", 180);
+        voteReminderMessage = reminderCS.getString("message", "&8Remember to vote for our server with &6/hvote&8 voting");
+        voteReminderDisableOnAllVotes = reminderCS.getBoolean("disable_on_all_votes", true);
     }
 
 
-
-    private void loadRewards() {
-        File customConfigFile;
-        FileConfiguration customConfig;
-        customConfigFile = new File(plugin.getDataFolder(), "rewards.yml");
-
-        //create file if it doesn't exist
-        if(!customConfigFile.exists()) {
-            customConfigFile.getParentFile().mkdirs();
-
-        }
-        // save data from resource to the players plugin one
-        plugin.saveResource("rewards.yml", false);
-        customConfig= new YamlConfiguration();
-        try {
-            customConfig.load(customConfigFile);
-        } catch (IOException | InvalidConfigurationException e) {
-            e.printStackTrace();
+    private void loadSectionDevelopment(ConfigurationSection section) {
+        if (section == null) {
+            Main.error("failed to load development section in config.yml !");
+            return;
         }
 
-        // === Start loading data ===
+        devEnabled = section.getBoolean("enabled");
+        devYear = section.getInt("year", 2000);
+        devMonth = section.getInt("month", 1);
+        devDay = section.getInt("day", 1);
+        devHour = section.getInt("hour", 0);
+        devMinute = section.getInt("minute", 0);
+        devZoneOffset = section.getString("zoneOffset", "+00:00");
     }
 
-
+    /*
+    * ==== GETTERS ====
+    */
     public String getPluginMessagePrefix() {
         return pluginMessagePrefix;
     }
@@ -124,7 +167,43 @@ public class ConfigManager extends Manager {
         return databaseConfig;
     }
 
-    public boolean isProccessFakeVotes() {
-        return proccessFakeVotes;
+    public boolean isProcessFakeVotes() {
+        return processFakeVotes;
+    }
+
+    public String getNotificationBroadcastMessage() {
+        return notificationBroadcastMessage;
+    }
+
+    public Integer getNotificationWaitTime() {
+        return notificationWaitTime;
+    }
+
+    public boolean isNotificationBroadcastEnabled() {
+        return notificationBroadcastEnabled;
+    }
+
+    public ZoneId getZoneId() {
+        return zoneId;
+    }
+
+    public int getVoteReminderRepeat() {
+        return voteReminderRepeat;
+    }
+
+    public String getVoteReminderMessage() {
+        return voteReminderMessage;
+    }
+
+    public boolean isVoteReminderEnabled() {
+        return voteReminderEnabled;
+    }
+
+    public boolean isDisableOnAllVotes() {
+        return voteReminderDisableOnAllVotes;
+    }
+
+    public boolean isVoteReminderOnJoin() {
+        return voteReminderOnJoin;
     }
 }

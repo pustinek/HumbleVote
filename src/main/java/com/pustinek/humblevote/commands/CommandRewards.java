@@ -6,29 +6,28 @@ import com.pustinek.humblevote.utils.Permissions;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class CommandVoting extends CommandDefault {
+public class CommandRewards extends CommandDefault {
 
-
-    CommandVoting(Main plugin) {
+    CommandRewards(Main plugin) {
         super(plugin);
     }
 
     @Override
     public String getCommandStart() {
-        return "humblevote voting";
+        return "humblevote rewards";
     }
 
     @Override
     public String getHelp(CommandSender target) {
-        if (target.hasPermission(Permissions.VOTING))
-            return "help-voting";
+        if (target.hasPermission(Permissions.RELOAD))
+            return "help-rewards";
         return null;
     }
 
     @Override
     public void execute(CommandSender sender, String[] args) {
         if (!sender.hasPermission(Permissions.VOTING)){
-           Main.message(sender, "permission-insufficient");
+            Main.message(sender, "permission-insufficient");
             return;
         }
 
@@ -37,8 +36,8 @@ public class CommandVoting extends CommandDefault {
             return;
         }
 
-        GUIManager.displayVotingGUI().open((Player) sender);
+        Player player = (Player) sender;
 
-
+        GUIManager.displayRewardsGUI().open(player);
     }
 }

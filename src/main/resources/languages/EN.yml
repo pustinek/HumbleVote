@@ -1,0 +1,51 @@
+action: "[gold][bold]<%0%>[/bold]"
+button: "[bold]<%0%>[/bold]"
+
+command:
+  - "[bold]%0%[/bold]"
+  - "    hover: %lang:action|Use %1%|%"
+  - "    command: %1%"
+
+helpCommand:
+  - "[dark_purple]%0% [gray]-[reset]"
+  - "    hover: %lang:action|Use %0%|%"
+  - "    command: %0%"
+
+test:
+  - "wow"
+  - "this is great"
+  - "my good"
+
+
+
+
+cmd-notValid: "That command is not valid, use '/groupchat help' for info."
+cmd-onlyByPlayer: "This command can only be run by a player !"
+
+help-header: "┅┅┅┅┅┅┅┅┅┅┅┅ [gold]Humble vote - Help page[reset] ┅┅┅┅┅┅┅┅┅┅┅┅"
+help-alias: "Command aliases: /humblevote, /hvote."
+help-top: "► %lang:helpCommand|/hvote top|% View top voters (total or monthly)"
+help-stats: "► %lang:helpCommand|/hvote stats [server]|% View your|server statistics"
+help-voting: "► %lang:helpCommand|/hvote voting|% View voting sites"
+help-rewards: "► %lang:helpCommand|/hvote rewards|% View available voting rewards"
+help-reload: "► %lang:helpCommand|/hvote reload|% Reload config files"
+help-footer: "┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅"
+
+rewards-notClaimable: "[red]This reward is not claimable !"
+rewards-onetimeAlreadyClaimed: "[red]This reward is only claimable one time and you already claimed it !"
+rewards-monthAlreadyClaimed: "[red]You already claimed this reward this month !"
+rewards-successfullyReceived: "[green]You received the reward %0% from voting"
+rewards-requirementsNotMeet: "[red]You don't meet the requirements for this reward !"
+
+permission-insufficient: "[red]Insufficient permissions to use this command"
+
+
+top-help: "/hvote top [monthly]"
+
+reload-success: "[green]You successfully reloaded the config file."
+
+stats: "┅┅┅┅┅┅┅┅┅┅┅┅ [gold] %0% vote stats[reset] ┅┅┅┅┅┅┅┅┅┅┅┅┅┅\n
+      [gold]Total votes:[reset] %1%\n
+      [gold]Monthly votes:[reset] %2%\n
+      [gold]Current Time:[reset] %3%\n
+      [reset]┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅"

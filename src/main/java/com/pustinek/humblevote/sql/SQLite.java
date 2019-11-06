@@ -62,6 +62,19 @@ public class SQLite extends Database {
                 + "address TINYTEXT NOT NULL,"
                 + "serviceName TINYTEXT NOT NULL,"
                 + "username TINYTEXT NOT NULL,"
+                + "localTimestamp TINYTEXT NOT NULL,"
                 + "timestamp TINYTEXT NOT NULL)";
     }
+
+    @Override
+    String getQueryCreateTableRewards() {
+        return "CREATE TABLE IF NOT EXISTS " + tableRewards + " ("
+                + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + "playerID VARCHAR(36) NOT NULL,"
+                + "playerName TINYTEXT NOT NULL,"
+                + "rewardID TINYTEXT NOT NULL,"
+                + "timestamp TINYTEXT NOT NULL)";
+    }
+
+
 }

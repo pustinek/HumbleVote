@@ -1,5 +1,6 @@
 package com.pustinek.humblevote.commands;
 
+import com.pustinek.humblevote.Main;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -8,6 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class  CommandDefault {
+
+    protected final Main plugin;
+
+    CommandDefault(Main plugin) {
+        this.plugin = plugin;
+    }
 
     /**
      * Check if this Command instance can execute the given command and arguments.

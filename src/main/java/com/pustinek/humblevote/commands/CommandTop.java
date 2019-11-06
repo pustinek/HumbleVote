@@ -3,32 +3,31 @@ package com.pustinek.humblevote.commands;
 import com.pustinek.humblevote.Main;
 import com.pustinek.humblevote.gui.GUIManager;
 import com.pustinek.humblevote.utils.Permissions;
+import com.pustinek.humblevote.voteStatistics.TopVoteStatsType;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class CommandVoting extends CommandDefault {
+public class CommandTop extends CommandDefault {
 
 
-    CommandVoting(Main plugin) {
+    CommandTop(Main plugin) {
         super(plugin);
     }
 
     @Override
     public String getCommandStart() {
-        return "humblevote voting";
+        return "humblevote top";
     }
 
     @Override
     public String getHelp(CommandSender target) {
-        if (target.hasPermission(Permissions.VOTING))
-            return "help-voting";
-        return null;
+        return "help-top";
     }
 
     @Override
     public void execute(CommandSender sender, String[] args) {
         if (!sender.hasPermission(Permissions.VOTING)){
-           Main.message(sender, "permission-insufficient");
+            Main.message(sender, "permission-insufficient");
             return;
         }
 
@@ -37,8 +36,13 @@ public class CommandVoting extends CommandDefault {
             return;
         }
 
-        GUIManager.displayVotingGUI().open((Player) sender);
+        Player player = (Player) sender;
 
+        TopVoteStatsType voteStats = TopVoteStatsType.TOTAL;
+        if(args.length > 1 && args[1].equalsIgnoreCase("m") ) {
+            voteStats = TopVoteStatsType.MONTH;
+        }
 
+        GUIManager.displayTopVotersGUI(voteStats).open(player);
     }
 }

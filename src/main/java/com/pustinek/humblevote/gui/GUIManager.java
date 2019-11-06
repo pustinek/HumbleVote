@@ -2,6 +2,7 @@ package com.pustinek.humblevote.gui;
 
 import com.pustinek.humblevote.Main;
 import com.pustinek.humblevote.utils.Manager;
+import com.pustinek.humblevote.voteStatistics.TopVoteStatsType;
 import fr.minuskube.inv.SmartInventory;
 
 public class GUIManager extends Manager {
@@ -17,8 +18,28 @@ public class GUIManager extends Manager {
         return SmartInventory.builder()
                 .manager(Main.getInventoryManager())
                 .provider(new VotingGUI())
-                .size(5, 9)
+                .size(2, 9)
                 .title("Voting sites")
+                .build();
+    }
+
+    public static SmartInventory displayTopVotersGUI(TopVoteStatsType voteStats) {
+        return SmartInventory.builder()
+                .manager(Main.getInventoryManager())
+                .provider(new TopVotesGUI(voteStats))
+                .size(5, 9)
+                .title(
+                        voteStats.equals(TopVoteStatsType.MONTH) ?  "Top voters - Monthly" : "Top voters - Total"
+                )
+                .build();
+    }
+
+    public static SmartInventory displayRewardsGUI() {
+        return SmartInventory.builder()
+                .manager(Main.getInventoryManager())
+                .provider(new RewardsGUI())
+                .size(3, 9)
+                .title("Voting rewards")
                 .build();
     }
 

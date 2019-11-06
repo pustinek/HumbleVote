@@ -23,9 +23,10 @@ public class CommandManager extends Manager implements CommandExecutor, TabCompl
         commands = new ArrayList<>();
         //ADD: Here you add the commands that you want to use..
         commands.add(new CommandReload(plugin));
-        commands.add(new CommandTest(plugin));
         commands.add(new CommandVoting(plugin));
         commands.add(new CommandStats(plugin));
+        commands.add(new CommandTop(plugin));
+        commands.add(new CommandRewards(plugin));
 
         plugin.getCommand(Permissions.PLUGIN_NAME).setExecutor(this);
         plugin.getCommand(Permissions.PLUGIN_NAME).setTabCompleter(this);
@@ -46,7 +47,8 @@ public class CommandManager extends Manager implements CommandExecutor, TabCompl
                 messages.add(help);
             }
         }
-
+        messages.add(0, "help-header");
+        messages.add("help-footer");
         for (String message : messages) {
             Main.messageNoPrefix(target, message);
         }

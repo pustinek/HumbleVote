@@ -2,17 +2,19 @@ package com.pustinek.humblevote.commands;
 
 import com.pustinek.humblevote.Main;
 import com.pustinek.humblevote.utils.Permissions;
+import com.pustinek.humblevote.voteStatistics.PlayerVoteStats;
+import com.pustinek.humblevote.voteStatistics.TopVoteStatsType;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CommandStats  extends CommandDefault{
 
 
-    private final Main plugin;
-
-    public CommandStats(Main plugin) {
-
-        this.plugin = plugin;
+    CommandStats(Main plugin) {
+        super(plugin);
     }
 
     @Override
@@ -22,23 +24,46 @@ public class CommandStats  extends CommandDefault{
 
     @Override
     public String getHelp(CommandSender target) {
-        return "humblevote stats - check player statistics";
+        return "help-stats";
     }
 
     @Override
     public void execute(CommandSender sender, String[] args) {
         if (!sender.hasPermission(Permissions.VOTING)){
-            sender.sendMessage("You don't have permission to view voting statistics");
+            Main.message(sender, "permission-insufficient");
             return;
         }
 
         if(!(sender instanceof Player)) {
-            sender.sendMessage("Command can only be executed  in-game");
+            Main.message(sender, "cmd-onlyPlayer");
             return;
         }
 
+        if(args.length > 1) {
+            if(args[1].equalsIgnoreCase("server")) {
+                Main.messageNoPrefix(sender, "stats","server", Main.getVoteStatisticsManager().getServerTotalVotes(TopVoteStatsType.TOTAL),Main.getVoteStatisticsManager().getServerTotalVotes(TopVoteStatsType.MONTH) , Main.getTimeManager().getReadableTimeFormat());
+                return;
+            }
+        }
+
+
         Player player = (Player) sender;
 
-        sender.sendMessage("your total votes: " + Main.getVoteStatisticsManager().getPlayerVoteStats(player.getUniqueId()).getTotalVoteCount());
+        PlayerVoteStats pvs = Main.getVoteStatisticsManager().getPlayerVoteStats(player.getUniqueId());
+
+        Main.messageNoPrefix(sender, "stats","your", pvs.getTotalVoteCount(), pvs.getMonthlyVoteCount(Main.getTimeManager().getYearMonth()), Main.getTimeManager().getReadableTimeFormat());
+    }
+
+    @Override
+    public List<String> getTabCompleteList(int toComplete, String[] start, CommandSender sender) {
+        ArrayList<String> results = new ArrayList<>();
+
+        if(toComplete == 2) {
+            results.add("server");
+        }
+
+        return results;
+
+
     }
 }

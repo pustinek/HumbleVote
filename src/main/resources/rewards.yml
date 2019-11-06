@@ -1,24 +1,50 @@
 rewards:
   basic_vote:
+      type: "ONVOTE"
+      claimable: false
       requirements: []
-      commands: []
-      money: 4000
-      player_message: '&6&lYou voted on %vote_site%!'
-      brodcast: "something annoying"
+      commands:
+        - "eco give {player} 2000"
+        - "message {player} You voted so you receive 2000 $"
+      gui:
+        name: "basic vote"
+        material: DIAMOND
+        enchanted: false
+        lore:
+          - "Vote on one of the websites to get the rewards"
+          - "get the reward every time you vote"
   milestone_50:
+    type: "MONTHLY"
     claimable: true
-    vote_requirements: 50
-    requirements: [] #Will be implemented in the future
+    requirements:
+      - "{vote.total} 50"
+      - "{vote.month} 10"
     commands:
-      - money %player% 5000
-      - lp user %player% permission set treasure.vote
-  milestone_100:
+      - "money {player} 5000"
+      - "lp user {player} permission set treasure.vote"
+    gui:
+      name: "monthly milestone - 50votes"
+      material: DIAMOND
+      enchanted: false
+      lore:
+        - "{votes.month}/{requirements.month}"
+        - "{votes.total}/{requirements.total}"
+        - "{requirements.claimable}"
+        - "Right click to claim the reward !"
+  total_100:
+    type: "ONETIME"
     claimable: true
-    vote_requirements: 100
-    requirements: []
+    requirements:
+      - "{vote.total} 100"
     commands:
-      - "money %player% 30000"
-      - "lp user %player% permission set voting.milestone.50"
-    player_message: '&6&lYou voted on %vote_site%!'
-    brodcast: "%player.display_name% reached the 100 vote milestone"
-
+      - "money {player} 50000"
+      - "lp user {player} permission set treasure.vote.100"
+    gui:
+      name: "onetime milestone - 100 votes"
+      material: EMERALD
+      enchanted: false
+      lore:
+        - "{votes.month}/{requirements.month} monthly votes"
+        - "{votes.total}/{requirements.total} total votes"
+        - "{requirements.claimable}"
+        - "Right click to claim the reward !"

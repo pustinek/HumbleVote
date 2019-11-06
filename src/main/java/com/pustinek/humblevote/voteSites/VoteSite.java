@@ -1,32 +1,35 @@
 package com.pustinek.humblevote.voteSites;
 
+import com.pustinek.humblevote.Main;
 import com.pustinek.humblevote.voteStatistics.PlayerVoteStats;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class VoteSite {
 
     private boolean enabled;
     private String service_site;
-    private ArrayList<String> vote_url;
-    private Integer vote_delay;
+    private ArrayList<String> voteURL;
+    private Long voteCooldown;
     private List<String> voteRewards;
     private GUIItem guiItem;
 
-    public VoteSite(boolean enabled, String service_site,ArrayList<String> vote_url,  Integer vote_delay, List<String> voteRewards, GUIItem gui) {
+    public VoteSite(boolean enabled, String service_site,ArrayList<String> voteURL,  Long voteCooldown, List<String> voteRewards, GUIItem gui) {
         this.enabled = enabled;
         this.service_site = service_site;
-        this.vote_delay = vote_delay;
+        this.voteCooldown = voteCooldown;
         this.voteRewards = voteRewards;
         this.guiItem = gui;
-        this.vote_url = vote_url;
+        this.voteURL = voteURL;
     }
-
 
 
     public boolean isEnabled() {
@@ -37,13 +40,15 @@ public class VoteSite {
         return service_site;
     }
 
-    public ArrayList<String> getVote_url() {
-        return vote_url;
+    public ArrayList<String> getVoteURL() {
+        return voteURL;
     }
 
-    public Integer getVote_delay() {
-        return vote_delay;
+    public long getVoteCooldown() {
+        return voteCooldown;
     }
+
+
 
     public List<String> getVoteRewards() {
         return voteRewards;
@@ -57,23 +62,58 @@ public class VoteSite {
 
 
     public ItemStack buildGUI(Player player, PlayerVoteStats playerVoteStats) {
-
         Material enabledMaterial = Material.getMaterial(guiItem.enabledMaterial);
         Material disabledMaterial = Material.getMaterial(guiItem.disabledMaterial);
+        ItemStack itemStack = null;
 
-        //String timeVotes = playerVoteStats.getVoteSiteLastVote(service_site);
+        PlayerVoteStats ps = Main.getVoteStatisticsManager().getPlayerVoteStats(player.getUniqueId());
+        long timeElapsed = 99999;
+        if(ps != null) {
+            String voteTimestamp = ps.getPlayerVoteSiteLastVoteTimestamp(service_site);
+            if(voteTimestamp != null) {
+                long voteTimestampAsLong = Long.parseLong(voteTimestamp);
+                Instant start = Instant.ofEpochMilli(voteTimestampAsLong);
+                Instant finish = Instant.now();
 
-        ItemStack itemStack = new ItemStack(enabledMaterial);
+                timeElapsed = Duration.between(start, finish).toMinutes();
+
+
+            }
+        }
+        if(timeElapsed < voteCooldown) {
+            itemStack = new ItemStack(disabledMaterial);
+        }else {
+            itemStack = new ItemStack(enabledMaterial);
+        }
+        long timeLeft = voteCooldown - timeElapsed;
+        if(timeLeft < 0) timeLeft = 0;
+
+
+        ArrayList<String> lore = new ArrayList<>();
+
+        long finalTimeLeft = timeLeft;
+
+        Date resultdate = new Date(finalTimeLeft);
+
+        long hours = finalTimeLeft / 60; //since both are ints, you get an int
+        long minutes = finalTimeLeft % 60;
+
+
+        for (String s : guiItem.lore) {
+            String x = s.replace("{cooldown}", (hours + "h " + minutes + "min"));
+            lore.add(x);
+        }
+
         ItemMeta itemMeta = itemStack.getItemMeta();
-        itemMeta.setLore(guiItem.lore);
+        itemMeta.setLore(lore);
         itemMeta.setDisplayName(guiItem.name);
-
+        //String timeVotes = playerVoteStats.getVoteSiteLastVote(service_site);
         itemStack.setItemMeta(itemMeta);
 
         return itemStack;
     }
 
-    public static class GUIItem {
+    static class GUIItem {
 
         private String name;
         private ArrayList<String> lore;
@@ -81,16 +121,12 @@ public class VoteSite {
         private String disabledMaterial;
         private ArrayList<String> urlDisplay;
 
-        public GUIItem(String name, ArrayList<String> lore, String enabledMaterial, String disabledMaterial) {
+        GUIItem(String name, ArrayList<String> lore, String enabledMaterial, String disabledMaterial) {
             this.name = name;
             this.lore = lore;
             this.enabledMaterial = enabledMaterial;
             this.disabledMaterial = disabledMaterial;
         }
-
-
-
-
     }
 
 

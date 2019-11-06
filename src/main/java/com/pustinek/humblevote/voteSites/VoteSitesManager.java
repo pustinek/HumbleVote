@@ -15,7 +15,7 @@ public class VoteSitesManager extends Manager {
 
     private final Main plugin;
 
-    private ArrayList<VoteSite> voteSitesArrayList = new ArrayList<>();
+    private static ArrayList<VoteSite> voteSitesArrayList = new ArrayList<>();
 
     public VoteSitesManager(Main plugin) {
         this.plugin = plugin;
@@ -55,10 +55,6 @@ public class VoteSitesManager extends Manager {
         ConfigurationSection voteSites = customConfig.getConfigurationSection("vote_sites");
         if(voteSites == null) return;
         for(String key : voteSites.getKeys(false)){
-            Main.debug("key:" + key);
-
-            Main.debug("enabled: " + voteSites.getString(key + ".enabled"));
-
             ConfigurationSection guiSection = voteSites.getConfigurationSection(key + ".gui");
 
             if(guiSection == null) {
@@ -70,7 +66,7 @@ public class VoteSitesManager extends Manager {
                     voteSites.getBoolean(key + ".enabled", true),
                     voteSites.getString(key + ".service_site"),
                     new ArrayList<>(voteSites.getStringList(key + ".vote_url")),
-                    voteSites.getInt(key + ".vote_cooldown"),
+                    voteSites.getLong(key + ".vote_cooldown"),
                     voteSites.getStringList(key + ".rewards"),
                     new VoteSite.GUIItem(
                             guiSection.getString("name", "default"),
@@ -78,9 +74,6 @@ public class VoteSitesManager extends Manager {
                             guiSection.getString("enabled_icon", "STONE"),
                             guiSection.getString("disabled_icon", "STONE")
                     ));
-
-            Main.debug("loading VoteSite --> service-site: " +voteSite.getService_site());
-
             voteSitesArrayList.add(voteSite);
         }
     }

@@ -3,6 +3,8 @@ version: ${project.version}
 main: com.pustinek.humblevote.Main
 api-version: "1.13"
 authors: [Pustinek]
+depend: [Votifier]
+softdepend: [PlaceholderAPI]
 description: "Voting plugin for minecraft"
 commands:
   humblevote:
