@@ -55,5 +55,5 @@ Placeholders that can be used in the ```gui``` section of a reward
 | `{votes.month}`  | Player votes acquired this month  | `integer` |
 | `{votes.total}`  | Player votes acquired in total  | `integer` |
 | `{config.claimable}`  | is the reward claimable as set in the file | `true|false` |
-| `{config.type}`  | type of rewards | `ONVOTE | MONTHLY | ONETIME`|
+| `{config.type}`  | type of rewards | `ONVOTE /| MONTHLY /| ONETIME`|
 
