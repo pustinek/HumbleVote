@@ -35,10 +35,11 @@ Placeholders that can be used in the ```requirements``` section of a reward
 
 | Placeholder  | Description |
 | ------------- | ------------- |
-| `{vote.total}`  | Player required votes received in total  |
-| `{vote.month}`  | Player required votes received in the current month  |
-| `{vote.server.total}`  | Player required votes received in total  |
-| `{vote.server.month}`  | Player required votes received in the current month  |
+| `{votes.total}`  | Player required votes received in total  |
+| `{votes.month}`  | Player required votes received in the current month  |
+| `{votes.server.total}`  | Votes acquired by the whole server   |
+| `{votes.server.month}`  | Player required votes received in the current month  |
+| `{votes.points}`  | Player voting points (points are removed on reward claim)  |
 
 ### GUI section
 Placeholders that can be used in the ```gui``` section of a reward
@@ -47,6 +48,9 @@ Placeholders that can be used in the ```gui``` section of a reward
 | ------------- | ------------- | ------------- |
 | `{requirements.month}`  | Monthly required votes to receive the reward  | `integer` |
 | `{requirements.total}`  | Total required votes to receive the reward  | `integer` |
+| `{requirements.server.month}`  | Monthly server votes required to receive the reward  | `integer` |
+| `{requirements.server.total}`  | Total server votes required to receive the reward  | `integer` |
+| `{requirements.points}`  | Player voting points required   | `integer` |
 | `{requirements.claimable}`  | Are the requirements met and can be claimed ?  | `string explaining` |
 | `{votes.month}`  | Player votes acquired this month  | `integer` |
 | `{votes.total}`  | Player votes acquired in total  | `integer` |
