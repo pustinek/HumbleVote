@@ -4,6 +4,7 @@ import com.pustinek.humblevote.Main;
 import com.pustinek.humblevote.voteSites.VoteSite;
 import com.pustinek.humblevote.voteStatistics.PlayerVoteStats;
 import org.bukkit.entity.Player;
+import org.bukkit.permissions.PermissionAttachmentInfo;
 
 import java.sql.Timestamp;
 import java.text.DateFormat;
@@ -11,10 +12,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -63,8 +61,6 @@ public class Utils {
             return Math.max(0, Math.min(value, max));
     }
 
-
-
     public static long getPlayerVoteSiteCooldown(Player player, VoteSite voteSite) {
 
         PlayerVoteStats ps = Main.getVoteStatisticsManager().getPlayerVoteStats(player.getUniqueId());
@@ -85,5 +81,50 @@ public class Utils {
 
         return timeLeft;
     }
+
+    public static int votePointCalculator(Player player) {
+        int votePointsToGive = 1;
+
+        Set<PermissionAttachmentInfo> effectivePermissions = player.getEffectivePermissions();
+        Pattern limitPattern = Pattern.compile("(humblevote.votepoints).([+|x])([0-9]+)");
+        Iterator<PermissionAttachmentInfo> itr = effectivePermissions.iterator();
+        ArrayList<Integer> addValues = new ArrayList<>();
+        ArrayList<Integer> multiplyValues = new ArrayList<>();
+
+        while (itr.hasNext()) {
+            PermissionAttachmentInfo info = itr.next();
+            String permission = info.getPermission();
+            Matcher matcher = limitPattern.matcher(permission);
+            if (matcher.find()) {
+                if(matcher.groupCount() < 3) {
+                    Main.debug("found but to short");
+                    continue;
+                }
+
+                Main.debug("0 -> " + matcher.group(0) );
+                Main.debug("1 -> " + matcher.group(1) );
+                Main.debug("2 -> " + matcher.group(2) );
+                Main.debug("3 -> " + matcher.group(3) );
+
+
+                String type = matcher.group(2);
+                int value = Integer.parseInt(matcher.group(3));
+                if(type.equalsIgnoreCase("x")) {
+                    multiplyValues.add(value);
+                }else if(type.equalsIgnoreCase("+")) {
+                    addValues.add(value);
+                }
+
+            }
+        }
+        int toMultiply = multiplyValues.stream().reduce(1, (a,b) -> a * b);
+        if(toMultiply < 1) toMultiply = 1;
+        votePointsToGive *= toMultiply;
+        int toSum = addValues.stream().mapToInt(Integer::intValue).sum();
+        votePointsToGive += toSum;
+
+        return votePointsToGive;
+    }
+
 
 }

@@ -4,12 +4,14 @@ import com.pustinek.humblevote.Main;
 import com.pustinek.humblevote.utils.Callback;
 import com.pustinek.humblevote.utils.ChatUtils;
 import com.pustinek.humblevote.utils.Manager;
+import com.pustinek.humblevote.voteStatistics.constants.TOP_VOTES_STATS_TYPE;
 import com.pustinek.humblevote.voting.QueuedVote;
 import org.bukkit.entity.Player;
 
 import java.time.YearMonth;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class PlayerVoteStatisticsManager extends Manager {
     private final Main plugin;
@@ -37,6 +39,22 @@ public class PlayerVoteStatisticsManager extends Manager {
         return playerVoteStatsConcurrentHashMap.get(playerId);
     }
 
+    /**
+     * Get player votes stats by his Username
+     *
+     * @param username username of the player to get
+     */
+    public PlayerVoteStats getPlayerVoteStats(String username) {
+        return playerVoteStatsConcurrentHashMap.values().stream().filter(playerVoteStats -> playerVoteStats.getPlayerLastUsername().equalsIgnoreCase(username)).findAny().orElse(null);
+    }
+
+
+    public List<String> getPlayerVoteStats() {
+        return playerVoteStatsConcurrentHashMap.values().stream().map(PlayerVoteStats::getPlayerLastUsername).collect(Collectors.toList());
+    }
+
+
+
     public static boolean isLoadedFromDatabase() {
         return loadedFromDatabase;
     }
@@ -46,11 +64,11 @@ public class PlayerVoteStatisticsManager extends Manager {
      *
      * @param top number of top voting players to get
      **/
-    public List<PlayerVoteStats> getPlayerVoteStatsByTop(Integer top, TopVoteStatsType statsType) {
+    public List<PlayerVoteStats> getPlayerVoteStatsByTop(Integer top, TOP_VOTES_STATS_TYPE statsType) {
 
         ArrayList<PlayerVoteStats> arrayList = new ArrayList<>(playerVoteStatsConcurrentHashMap.values());
         final YearMonth yearMonth = Main.getVoteStatisticsManager().getCurrentYearMonth();
-        if(statsType.equals(TopVoteStatsType.MONTH)){
+        if(statsType.equals(TOP_VOTES_STATS_TYPE.MONTH)){
             arrayList.sort((Comparator.comparing(date -> date.getMonthlyVoteCount(yearMonth), Collections.reverseOrder())));
         }else {
             arrayList.sort((Comparator.comparing(PlayerVoteStats::getTotalVoteCount, Collections.reverseOrder())));
@@ -67,10 +85,10 @@ public class PlayerVoteStatisticsManager extends Manager {
      *
      * @param statsType total | month
      **/
-    public int getServerTotalVotes(TopVoteStatsType statsType) {
-        if(statsType.equals(TopVoteStatsType.MONTH)) {
+    public int getServerTotalVotes(TOP_VOTES_STATS_TYPE statsType) {
+        if(statsType.equals(TOP_VOTES_STATS_TYPE.MONTH)) {
            return playerVoteStatsConcurrentHashMap.values().stream().map(pvs -> pvs.getMonthlyVoteCount(Main.getTimeManager().getYearMonth())).reduce(0, Integer::sum);
-        }else if(statsType.equals(TopVoteStatsType.TOTAL)) {
+        }else if(statsType.equals(TOP_VOTES_STATS_TYPE.TOTAL)) {
             return playerVoteStatsConcurrentHashMap.values().stream().map(PlayerVoteStats::getTotalVoteCount).reduce(0, Integer::sum);
         }
         return 0;
@@ -111,7 +129,7 @@ public class PlayerVoteStatisticsManager extends Manager {
         }
         // 2. Check if database was already checked, but there was no entry for the user
         if(loadedFromDatabase) {
-            PlayerVoteStats playerVoteStats = new PlayerVoteStats(player.getUniqueId(), player.getName(), 0, null);
+            PlayerVoteStats playerVoteStats = new PlayerVoteStats(player.getUniqueId(), player.getName(), 0,0, null);
             playerVoteStats.setNeedsDatabaseSync(true);
             playerVoteStatsConcurrentHashMap.put(player.getUniqueId(), playerVoteStats);
             savePlayerVoteStatsToDatabase(player.getUniqueId());
@@ -123,14 +141,14 @@ public class PlayerVoteStatisticsManager extends Manager {
                     if(result == null) {
                         // In case there is no entry in database, create new vote-stats object and save it to database
                         Main.debug("There was to player vote stats entry found in DB for user "+ player.getName() +" - creating a new one");
-                        PlayerVoteStats playerVoteStats = new PlayerVoteStats(player.getUniqueId(), player.getName(), 0, null);
+                        PlayerVoteStats playerVoteStats = new PlayerVoteStats(player.getUniqueId(), player.getName(), 0,0, null);
                         playerVoteStats.setNeedsDatabaseSync(true);
                         playerVoteStatsConcurrentHashMap.put(player.getUniqueId(), playerVoteStats);
                         savePlayerVoteStatsToDatabase(player.getUniqueId());
                         if(callback != null) callback.callSyncResult(1);
                     }else {
                         // In case there is already an entry in database just use that
-                        playerVoteStatsConcurrentHashMap.put(result.getPlayerId(), result);
+                        playerVoteStatsConcurrentHashMap.put(result.getPlayerUUID(), result);
                         if(callback != null) callback.callSyncResult(1);
                     }
                 }

@@ -23,9 +23,12 @@ public class RewardsGUI implements InventoryProvider {
             Reward reward = rewards.get(i);
             ItemStack is = reward.buildGUIItem(player);
             items[i] = ClickableItem.of(is, e -> {
-                if(e.isRightClick()) {
+                if(e.isLeftClick()) {
                     final boolean b = Main.getRewardManager().playerClaimReward(player, reward.getId());
-                    if(b) player.sendMessage("You successfully claimed the reward !");
+                    if(b) {
+                        player.sendMessage("You successfully claimed the reward.");
+                        GUIManager.displayRewardsGUI().open(player);
+                    }
                 }
 
             });
@@ -37,8 +40,6 @@ public class RewardsGUI implements InventoryProvider {
                     i % 9,
                     items[i]);
         }
-
-
 
     }
 

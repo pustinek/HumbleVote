@@ -1,7 +1,7 @@
 package com.pustinek.humblevote.placeholders;
 
 import com.pustinek.humblevote.Main;
-import com.pustinek.humblevote.voteStatistics.TopVoteStatsType;
+import com.pustinek.humblevote.voteStatistics.constants.TOP_VOTES_STATS_TYPE;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 
@@ -55,10 +55,10 @@ public class Placeholders extends PlaceholderExpansion {
             return "" + Main.getVoteStatisticsManager().getPlayerVoteStats(player.getUniqueId()).getMonthlyVoteCount(YearMonth.now());
         }
         if(identifier.equals("server_total")){
-            return Integer.toString(Main.getVoteStatisticsManager().getServerTotalVotes(TopVoteStatsType.TOTAL));
+            return Integer.toString(Main.getVoteStatisticsManager().getServerTotalVotes(TOP_VOTES_STATS_TYPE.TOTAL));
         }
         if(identifier.equals("server_month")){
-            return Integer.toString(Main.getVoteStatisticsManager().getServerTotalVotes(TopVoteStatsType.MONTH));
+            return Integer.toString(Main.getVoteStatisticsManager().getServerTotalVotes(TOP_VOTES_STATS_TYPE.MONTH));
         }
 
         return null;

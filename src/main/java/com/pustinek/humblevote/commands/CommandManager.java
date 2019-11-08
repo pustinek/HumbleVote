@@ -27,6 +27,7 @@ public class CommandManager extends Manager implements CommandExecutor, TabCompl
         commands.add(new CommandStats(plugin));
         commands.add(new CommandTop(plugin));
         commands.add(new CommandRewards(plugin));
+        commands.add(new CommandManage(plugin));
 
         plugin.getCommand(Permissions.PLUGIN_NAME).setExecutor(this);
         plugin.getCommand(Permissions.PLUGIN_NAME).setTabCompleter(this);
@@ -77,7 +78,7 @@ public class CommandManager extends Manager implements CommandExecutor, TabCompl
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> result = new ArrayList<>();
-        if (!sender.hasPermission(Permissions.TAB_COMPLETE)) {
+        if (!sender.hasPermission(Permissions.VOTING)) {
             return result;
         }
         int toCompleteNumber = args.length;

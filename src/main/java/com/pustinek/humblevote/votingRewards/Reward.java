@@ -4,6 +4,9 @@ import com.pustinek.humblevote.Main;
 import com.pustinek.humblevote.utils.ChatUtils;
 import com.pustinek.humblevote.utils.Utils;
 import com.pustinek.humblevote.voteStatistics.PlayerVoteStats;
+import com.pustinek.humblevote.voteStatistics.constants.TOP_VOTES_STATS_TYPE;
+import com.pustinek.humblevote.votingRewards.constants.REWARD_TYPE;
+import me.wiefferink.interactivemessenger.processing.Message;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -18,29 +21,27 @@ import java.util.stream.Collectors;
 public class Reward {
 
     private String id;
-    private int reqTotalVotes = 0;
-    private int reqMonthlyVotes = 0;
     private boolean claimable;
-    private List<String> commands;
-    private RewardType rewardType;
+    private List<String> rewards;
+    private REWARD_TYPE REWARDTYPE;
     private RewardRequirements requirements;
 
     private String GUIName;
     private List<String> GUILore;
     private Material GUIMaterial;
 
-    public Reward(String id, RewardType rewardType, Integer reqTotalVotes, Integer reqMonthlyVotes, boolean claimable, List<String > commands, String GUIName, List<String> GUILore, Material GUIMaterial) {
+    public Reward(String id, REWARD_TYPE REWARDTYPE, boolean claimable, RewardRequirements requirements, List<String > rewards, String GUIName, List<String> GUILore, Material GUIMaterial) {
         this.id = id;
-        this.reqTotalVotes = reqTotalVotes;
-        this.reqMonthlyVotes = reqMonthlyVotes;
         this.claimable = claimable;
-        this.commands = commands;
-        this.rewardType = rewardType;
+        this.requirements = requirements;
+        this.rewards = rewards;
+        this.REWARDTYPE = REWARDTYPE;
         this.GUIName = GUIName;
         this.GUILore = GUILore;
         this.GUIMaterial = GUIMaterial;
     }
-    
+
+
     public ItemStack buildGUIItem(Player player) {
         YearMonth yearMonth = Main.getTimeManager().getYearMonth();
         ItemStack itemStack = new ItemStack(GUIMaterial);
@@ -55,26 +56,32 @@ public class Reward {
         PlayerVoteStats ps = Main.getVoteStatisticsManager().getPlayerVoteStats(player.getUniqueId());
 
         ArrayList<PlayerRewardRecord> playerRewardRecords = Main.getRewardManager().getPlayerRewardRecords(player.getUniqueId(), id);
-        PlayerRewardRecord playerRewardRecord = null;
-        if(rewardType.equals(RewardType.MONTHLY) || rewardType.equals(RewardType.SERVER_MONTHLY)){
+        PlayerRewardRecord playerRewardRecord;
+        if(REWARDTYPE.equals(REWARD_TYPE.MONTHLY)){
             playerRewardRecord = playerRewardRecords.stream().filter(prr -> Main.getTimeManager().InstantToYearMonth(prr.getTimestamp()).equals(yearMonth)).findAny().orElse(null);
         } else{
             playerRewardRecord = playerRewardRecords.stream().findFirst().orElse(null);
         }
-        replaceMap.put("{requirements.total}", "" + reqTotalVotes);
-        replaceMap.put("{requirements.month}", "" + reqMonthlyVotes);
-        replaceMap.put("{votes.month}", ("" + ps.getMonthlyVoteCount(Main.getTimeManager().getYearMonth())));
+        replaceMap.put("{requirements.total}", "" + requirements.getTotalVotes());
+        replaceMap.put("{requirements.month}", "" + requirements.getMonthlyVotes());
+        replaceMap.put("{requirements.server.total}", "" + requirements.getServerTotalVotes());
+        replaceMap.put("{requirements.server.month}", "" + requirements.getServerMonthlyVotes());
+        replaceMap.put("{requirements.points}", "" + requirements.getVotingPoints());
+        replaceMap.put("{votes.month}", String.valueOf(ps.getMonthlyVoteCount()));
         replaceMap.put("{votes.total}", String.valueOf(ps.getTotalVoteCount()));
+        replaceMap.put("{votes.points}", String.valueOf(ps.getVotingPoints()));
+        replaceMap.put("{votes.server.total}", String.valueOf(Main.getVoteStatisticsManager().getServerTotalVotes(TOP_VOTES_STATS_TYPE.TOTAL)));
+        replaceMap.put("{votes.server.month}", String.valueOf(Main.getVoteStatisticsManager().getServerTotalVotes(TOP_VOTES_STATS_TYPE.MONTH)));
         replaceMap.put("{config.claimable}", String.valueOf(isClaimable()));
-        replaceMap.put("{config.type}", rewardType.toString());
+        replaceMap.put("{config.type}", REWARDTYPE.toString());
         if(playerRewardRecord == null) {
-            if(ps.getMonthlyVoteCount(yearMonth) >= reqMonthlyVotes && ps.getTotalVoteCount() >= reqTotalVotes) {
-                replaceMap.put("{requirements.claimable}", "Reward Can be claimed");
+            if(ps.getMonthlyVoteCount(yearMonth) >= requirements.getMonthlyVotes() && ps.getTotalVoteCount() >= requirements.getTotalVotes()) {
+                replaceMap.put("{requirements.claimable}", Message.fromKey("rewards-placeholder-claim-readyToBeClaimed").getPlain());
             }else{
-                replaceMap.put("{requirements.claimable}", "Requirements not meet");
+                replaceMap.put("{requirements.claimable}", Message.fromKey("rewards-placeholder-claim-requirementsNotMeet").getPlain());
             }
         }else {
-            replaceMap.put("{requirements.claimable}", "&cAlready claimed");
+            replaceMap.put("{requirements.claimable}", Message.fromKey("rewards-placeholder-claim-alreadyClaimed").getPlain());
         }
 
 
@@ -93,7 +100,7 @@ public class Reward {
      * @param player player to check
      * */
     public boolean isPlayerEligible(Player player) {
-        if(rewardType.equals(RewardType.ONVOTE)) return true;
+        if(REWARDTYPE.equals(REWARD_TYPE.ONVOTE)) return true;
         return isPlayerMeetsRequirements(player) && !isPlayerAlreadyClaimed(player);
     }
 
@@ -106,7 +113,13 @@ public class Reward {
 
         PlayerVoteStats playerVoteStats = Main.getVoteStatisticsManager().getPlayerVoteStats(player.getUniqueId());
         YearMonth currentYearMonth = Main.getTimeManager().getYearMonth();
-        return (playerVoteStats.getMonthlyVoteCount(currentYearMonth)) >= this.getReqMonthlyVotes() && (playerVoteStats.getTotalVoteCount()) >= this.getReqTotalVotes();
+        return (playerVoteStats.getMonthlyVoteCount(currentYearMonth)) >= this.getReqMonthlyVotes() &&
+                (playerVoteStats.getTotalVoteCount()) >= this.getReqTotalVotes() &&
+                (playerVoteStats.getVotingPoints() >= this.getReqVotingPoints() &&
+                        Main.getVoteStatisticsManager().getServerTotalVotes(TOP_VOTES_STATS_TYPE.TOTAL) >= this.getRequirements().getServerTotalVotes() &&
+        Main.getVoteStatisticsManager().getServerTotalVotes(TOP_VOTES_STATS_TYPE.MONTH) >= this.getRequirements().getServerMonthlyVotes()
+
+                );
     }
 
     /**
@@ -119,17 +132,16 @@ public class Reward {
         ArrayList<PlayerRewardRecord> playerRewardRecords = Main.getRewardManager().getPlayerRewardRecords(player.getUniqueId());
         ArrayList<PlayerRewardRecord> filteredRewardRecords = playerRewardRecords.stream().filter(prr -> prr.getRewardID().equals(id)).collect(Collectors.toCollection(ArrayList::new));
         YearMonth currentYearMonth = Main.getTimeManager().getYearMonth();
-        switch (rewardType) {
+        switch (REWARDTYPE) {
         case ONVOTE:
+            case ANYTIME:
                 return false;
         case MONTHLY:
-        case SERVER_MONTHLY:
             return filteredRewardRecords.stream().anyMatch(prr ->
                     ( Main.getTimeManager().InstantToYearMonth(prr.getTimestamp()).getYear() == currentYearMonth.getYear() &&
                             Main.getTimeManager().InstantToYearMonth(prr.getTimestamp()).getMonth().equals(currentYearMonth.getMonth()))
             );
         case ONETIME:
-        case SERVER_ONETIME:
             return filteredRewardRecords.stream().anyMatch(prr -> prr.getRewardID().equals(id));
         default:
             return true;
@@ -142,28 +154,38 @@ public class Reward {
         return id;
     }
 
-    public RewardType getRewardType() {
-        return rewardType;
+    public REWARD_TYPE getREWARDTYPE() {
+        return REWARDTYPE;
     }
 
     public Integer getReqTotalVotes() {
-        return reqTotalVotes;
+        return requirements.getTotalVotes();
     }
 
     public Integer getReqMonthlyVotes() {
-        return reqMonthlyVotes;
+        return requirements.getMonthlyVotes();
     }
+
+    public int getReqVotingPoints() { return requirements.getVotingPoints(); }
+
+    public RewardRequirements getRequirements() {
+        return requirements;
+    }
+
 
     public boolean isClaimable() {
         return claimable;
     }
 
-    public List<String> getCommands() {
-        return commands;
+    public List<String> getRewards() {
+        return rewards;
     }
 
     public List<String> getGUILore() {
         return GUILore;
     }
 
+    public String getGUIName() {
+        return GUIName;
+    }
 }

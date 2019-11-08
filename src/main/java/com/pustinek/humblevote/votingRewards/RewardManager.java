@@ -6,6 +6,9 @@ import com.pustinek.humblevote.utils.ChatUtils;
 import com.pustinek.humblevote.utils.Manager;
 import com.pustinek.humblevote.utils.Utils;
 import com.pustinek.humblevote.voteStatistics.PlayerVoteStats;
+import com.pustinek.humblevote.voteStatistics.constants.MODIFICATION_TYPE;
+import com.pustinek.humblevote.votingRewards.constants.AWARD_POSSIBILITIES;
+import com.pustinek.humblevote.votingRewards.constants.REWARD_TYPE;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -44,23 +47,66 @@ public class RewardManager extends Manager{
      * @param player player that will receive the reward
      * @param reward reward that will be given
      **/
-    private void giveRewardToPlayer(Player player, Reward reward) {
+    private void giveRewardToPlayer(Player player, Reward reward, boolean removePoints) {
+        // Replacement for strings
         HashMap<String, String> toReplace = new HashMap<>();
         toReplace.put("{player}", player.getName());
-        reward.getCommands().forEach(cmd -> {
+        toReplace.put("{player.uuid}", player.getUniqueId().toString());
 
-            if(cmd.startsWith("money")) {
-                int i = Utils.findFirstNumberSequenceInString(cmd);
-                if(i < 0) {Main.warning("failed to parse " + reward.getId() + " <money> reward, skipping reward. "); return;}
-                Economy economy = Main.getEconomy();
-                if(economy != null)
-                    economy.depositPlayer(player, i);
+        reward.getRewards().forEach(innerReward -> {
+            String[] innerRewardSplit = innerReward.split(" ", 2);
+            if(innerRewardSplit.length < 2) {
                 return;
             }
 
-            final String finalCMD = Utils.replaceStuffInString(toReplace, cmd);
-            Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), finalCMD);
+            String startingWord = innerRewardSplit[0];
+            String value = innerRewardSplit[1];
+
+            if(startingWord.equalsIgnoreCase(AWARD_POSSIBILITIES.MONEY.toString())) {
+                int i = Utils.findFirstNumberSequenceInString(innerReward);
+                if(i < 0) {Main.warning("failed to parse " + reward.getId() + " <money> reward, skipping innerReward. "); return;}
+                Economy economy = Main.getEconomy();
+                if(economy != null)
+                    economy.depositPlayer(player, i);
+            }else if(startingWord.equalsIgnoreCase(AWARD_POSSIBILITIES.CMD.toString())) {
+                final String finalCMD = Utils.replaceStuffInString(toReplace, value);
+                Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), finalCMD);
+            }else if(startingWord.equalsIgnoreCase(AWARD_POSSIBILITIES.MESSAGE.toString())) {
+                String[] split = value.split(" ", 2);
+                if(split.length < 2) {
+                    return;
+                }
+                if(!split[0].equalsIgnoreCase("{player}")){
+                    return;
+                }
+
+                HashMap<String, String> replaceMap = new HashMap<>();
+                replaceMap.put("{player}", player.getName());
+                replaceMap.put("{prefix}", Main.getConfigManager().getPluginMessagePrefix());
+                replaceMap.put("{reward.id}", reward.getId());
+                replaceMap.put("{reward.name}", reward.getGUIName());
+                final String finalMessage = Utils.replaceStuffInString(replaceMap, split[1]);
+                player.sendMessage(ChatUtils.chatColor(finalMessage));
+            }else if(startingWord.equalsIgnoreCase(AWARD_POSSIBILITIES.BROADCAST.toString())) {
+                String[] split = value.split(" ", 2);
+                if(split.length < 2) {
+                    return;
+                }
+                HashMap<String, String> replaceMap = new HashMap<>();
+                replaceMap.put("{player}", player.getName());
+                replaceMap.put("{prefix}", Main.getConfigManager().getPluginMessagePrefix());
+                replaceMap.put("{reward.id}", reward.getId());
+                replaceMap.put("{reward.name}", reward.getGUIName());
+
+                final String finalMessage = Utils.replaceStuffInString(replaceMap, split[1]);
+                Bukkit.broadcastMessage(ChatUtils.chatColor(finalMessage));
+
+            }
         });
+        PlayerVoteStats playerVoteStats = Main.getVoteStatisticsManager().getPlayerVoteStats(player.getUniqueId());
+        if(reward.getReqVotingPoints() > 0 && playerVoteStats != null) {
+            playerVoteStats.modifyVotePoints(MODIFICATION_TYPE.SUBTRACT, reward.getReqVotingPoints());
+        }
     }
 
     /**
@@ -76,28 +122,26 @@ public class RewardManager extends Manager{
         if(reward == null) return false; // Reward doesn't exist
 
         // On-vote reward check
-        if(reward.getRewardType() == RewardType.ONVOTE || !reward.isClaimable())   {
+        if(reward.getREWARDTYPE() == REWARD_TYPE.ONVOTE || !reward.isClaimable())   {
             Main.message(player,"rewards-notClaimable");
             return false;
         }
 
-        if((reward.getRewardType().equals(RewardType.MONTHLY) ||
-                reward.getRewardType().equals(RewardType.SERVER_MONTHLY))
-                && reward.isPlayerAlreadyClaimed(player)
+        if((reward.getREWARDTYPE().equals(REWARD_TYPE.MONTHLY)
+                && reward.isPlayerAlreadyClaimed(player))
         ) {
             Main.message(player,"rewards-monthAlreadyClaimed");
             return false;
         }
-        if((reward.getRewardType().equals(RewardType.ONETIME) ||
-                reward.getRewardType().equals(RewardType.SERVER_ONETIME))
-                && reward.isPlayerAlreadyClaimed(player)
+        if((reward.getREWARDTYPE().equals(REWARD_TYPE.ONETIME)
+                && reward.isPlayerAlreadyClaimed(player))
         ) {
             Main.message(player,"rewards-onetimeAlreadyClaimed");
             return false;
         }
 
         if(reward.isPlayerMeetsRequirements(player)) {
-            giveRewardToPlayer(player, reward);
+            giveRewardToPlayer(player, reward, true);
             rewardGivenSuccessfully(player,rewardID, Main.getTimeManager().getTimeInstant());
             return true;
         }
@@ -109,8 +153,8 @@ public class RewardManager extends Manager{
 
     public void processPlayerVoteReward(Player player) {
         rewardArrayList.forEach(vr -> {
-            if(vr.getRewardType().equals(RewardType.ONVOTE)){
-                giveRewardToPlayer(player,vr);
+            if(vr.getREWARDTYPE().equals(REWARD_TYPE.ONVOTE)){
+                giveRewardToPlayer(player,vr, false);
             }
         });
     }
@@ -125,31 +169,31 @@ public class RewardManager extends Manager{
     private void processPlayerReward(Player player) {
         //TODO: processs on VoteReward separably
         ArrayList<PlayerRewardRecord> playerRewardRecords = votingRewardRecords.get(player.getUniqueId());
-        PlayerVoteStats playerVoteStats = Main.getVoteStatisticsManager().getPlayerVoteStats(player.getUniqueId());
-        YearMonth currentYearMonth = Main.getTimeManager().getYearMonth();
         rewardArrayList.forEach(vr -> {
+
+            if(vr.isClaimable()) return; //Reward is claimable, so ignore it
+
             if(
-                    vr.getRewardType().equals(RewardType.ONETIME) ||
-                            vr.getRewardType().equals(RewardType.MONTHLY))
+                    vr.getREWARDTYPE().equals(REWARD_TYPE.ONETIME) ||
+                            vr.getREWARDTYPE().equals(REWARD_TYPE.MONTHLY) ||
+                        vr.getREWARDTYPE().equals(REWARD_TYPE.ANYTIME))
             {
-                if(vr.isClaimable()) return; //Reward is claimable, so ignore it
+
                 if(playerRewardRecords.stream().anyMatch(o -> o.getRewardID().equals(vr.getId()))) return;
 
 
                 // If reward == monthly -> check that he hasn't gotten it this month
-                if(vr.getRewardType().equals(RewardType.MONTHLY)) {
+                if(vr.getREWARDTYPE().equals(REWARD_TYPE.MONTHLY)) {
                     if(playerRewardRecords.stream().anyMatch(o -> o.getRewardID().equals(vr.getId()) &&
                             LocalDateTime.ofInstant(o.getTimestamp(), ZoneOffset.UTC).getMonth().equals(YearMonth.now().getMonth()))) return;
-                }else if(vr.getRewardType().equals(RewardType.ONETIME)) {
+                }else if(vr.getREWARDTYPE().equals(REWARD_TYPE.ONETIME)) {
                     //  reward == onetime && was already given to the player so skip this loop
                     if(playerRewardRecords.stream().anyMatch(o -> o.getRewardID().equals(vr.getId()))) return;
                 }
 
                 // Check if requirements are meet
-                if((playerVoteStats.getMonthlyVoteCount(currentYearMonth)) >= vr.getReqMonthlyVotes() &&  (playerVoteStats.getTotalVoteCount()) >= vr.getReqTotalVotes()) {
-                    giveRewardToPlayer(player,vr);
-
-                    player.sendMessage(ChatUtils.chatColor("&5You successfully recieved reward with ID: "+ vr.getId()));
+                if(vr.isPlayerMeetsRequirements(player)) {
+                    giveRewardToPlayer(player,vr, true);
                     rewardGivenSuccessfully(player, vr.getId(), null);
                 }
 
@@ -223,7 +267,7 @@ public class RewardManager extends Manager{
             plugin.saveResource("rewards.yml", false);
         }
 
-        customConfig= new YamlConfiguration();
+        customConfig = new YamlConfiguration();
         try {
             customConfig.load(customConfigFile);
         } catch (IOException | InvalidConfigurationException e) {
@@ -231,30 +275,69 @@ public class RewardManager extends Manager{
         }
 
         // === Start loading data ===
-
         ConfigurationSection rewardsCS = customConfig.getConfigurationSection("rewards");
 
         if(rewardsCS == null) return;
         for(String key : rewardsCS.getKeys(false)){
 
-
             // Parse requirements
-            List<String> requirements = rewardsCS.getStringList(key + ".requirements");
-            int req_totalVotes = 0;
-            int req_monthlyVotes = 0;
+            List<String> requirementsStringList = rewardsCS.getStringList(key + ".requirements");
+            int requiredTotalVotes = 0;
+            int requiredMonthlyVotes = 0;
+            int requiredServerTotalVotes = 0;
+            int requiredServerMonthlyVotes = 0;
+            int requiredVotingPoints = 0;
 
-            for (String req : requirements) {
-                if (req.contains("{vote.total}")) {
-                    Integer foundInt = Utils.findFirstNumberSequenceInString(req);
-                    req_totalVotes = foundInt != -1 ? foundInt : 0;
+            for (String req : requirementsStringList) {
+                if(req.contains("{votes.server.total}")) {
+                    int foundInt = Utils.findFirstNumberSequenceInString(req);
+                    requiredServerTotalVotes = foundInt != -1 ? foundInt : 0;
+                }else if(req.contains("{votes.server.month}")) {
+                    int foundInt = Utils.findFirstNumberSequenceInString(req);
+                    requiredServerMonthlyVotes = foundInt != -1 ? foundInt : 0;
+                }else if (req.contains("{votes.total}")) {
+                    int foundInt = Utils.findFirstNumberSequenceInString(req);
+                    requiredTotalVotes = foundInt != -1 ? foundInt : 0;
 
-                } else if (req.contains("{vote.month")) {
-                    Integer foundInt = Utils.findFirstNumberSequenceInString(req);
-                    req_monthlyVotes = foundInt != -1 ? foundInt : 0;
+                }else if (req.contains("{votes.month")) {
+                    int foundInt = Utils.findFirstNumberSequenceInString(req);
+                    requiredMonthlyVotes = foundInt != -1 ? foundInt : 0;
+                }
+                else if (req.contains("{votes.points")) {
+                    int foundInt = Utils.findFirstNumberSequenceInString(req);
+                    requiredVotingPoints = foundInt != -1 ? foundInt : 0;
                 }
             }
-            Main.debug("[reward - " + key + "] req_monthly: " + req_monthlyVotes + ", req_total: " + req_totalVotes );
 
+
+
+            // Parse rewards
+            List<String> innerRewardList = rewardsCS.getStringList(key + ".rewards");
+            List<String> validInnerReward = new ArrayList<>();
+            List<AWARD_POSSIBILITIES> innerRewardPossibilities = Arrays.asList(AWARD_POSSIBILITIES.values());
+            innerRewardList.forEach(award -> {
+                if(award.isEmpty()) return;
+                String[] awardSplit = award.split(" ", 2);
+                if(awardSplit.length < 2) {
+                    Main.warning("[reward.yml][" + key + "] failed to parse award `" + award + "` invalid number of arguments.");
+                    return;
+                }
+                String startingWord = awardSplit[0];
+                boolean isValid = innerRewardPossibilities.stream().anyMatch(validFirstWord -> validFirstWord.toString().equalsIgnoreCase(startingWord));
+                if(!isValid) {
+                    Main.warning("[reward.yml][" + key + "] failed to parse award `" + award + "` invalid starting word (" + startingWord + ")." );
+                    return;
+                }
+
+
+
+                validInnerReward.add(award);
+            });
+
+
+            RewardRequirements requirements = new RewardRequirements(requiredMonthlyVotes, requiredTotalVotes, requiredServerMonthlyVotes, requiredServerTotalVotes, requiredVotingPoints);
+
+            // Parse GUI section
             ConfigurationSection rewardGUICS = rewardsCS.getConfigurationSection(key + ".gui");
 
             if(rewardGUICS == null) {
@@ -262,17 +345,18 @@ public class RewardManager extends Manager{
                 return;
             }
 
+
             Reward reward = new Reward(
                     key,
-                    RewardType.valueOf(rewardsCS.getString(key + ".type", "ONETIME")),
-                    req_totalVotes,
-                    req_monthlyVotes,
+                    REWARD_TYPE.valueOf(rewardsCS.getString(key + ".type", "ONETIME")),
                     rewardsCS.getBoolean(key + ".claimable", false),
-                    rewardsCS.getStringList(key + ".commands"),
-                    rewardGUICS.getString("name"),
+                    requirements,
+                    validInnerReward,
+                    rewardGUICS.getString("name", "NULL"),
                     rewardGUICS.getStringList("lore"),
                     Material.getMaterial(Objects.requireNonNull(rewardGUICS.getString("material", "BARRIER")))
                     );
+
             rewardArrayList.add(reward);
         }
     }

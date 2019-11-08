@@ -6,13 +6,15 @@ public class RewardRequirements {
     public int totalVotes;
     public int serverMonthlyVotes;
     public int serverTotalVotes;
+    public int votingPoints;
 
 
-    public RewardRequirements(int monthlyVotes, int totalVotes, int serverMonthlyVotes, int serverTotalVotes) {
+    public RewardRequirements(int monthlyVotes, int totalVotes, int serverMonthlyVotes, int serverTotalVotes, int votingPoints) {
         this.monthlyVotes = monthlyVotes;
         this.totalVotes = totalVotes;
         this.serverMonthlyVotes = serverMonthlyVotes;
         this.serverTotalVotes = serverTotalVotes;
+        this.votingPoints =votingPoints;
     }
 
     public int getMonthlyVotes() {
@@ -29,5 +31,9 @@ public class RewardRequirements {
 
     public int getServerTotalVotes() {
         return serverTotalVotes;
+    }
+
+    public int getVotingPoints() {
+        return votingPoints;
     }
 }

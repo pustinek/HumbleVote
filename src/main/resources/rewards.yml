@@ -1,10 +1,13 @@
+# type == "ONVOTE | MONTHLY | ONETIME"
+# all possible variables are found  @ https://github.com/pustinek/HumbleVote
 rewards:
-  basic_vote:
+  basic_vote: #This line should be unique (id)
+      enabled: true
       type: "ONVOTE"
       claimable: false
       requirements: []
-      commands:
-        - "eco give {player} 2000"
+      rewards:
+        - "money 3000"
         - "message {player} You voted so you receive 2000 $"
       gui:
         name: "basic vote"
@@ -13,38 +16,3 @@ rewards:
         lore:
           - "Vote on one of the websites to get the rewards"
           - "get the reward every time you vote"
-  milestone_50:
-    type: "MONTHLY"
-    claimable: true
-    requirements:
-      - "{vote.total} 50"
-      - "{vote.month} 10"
-    commands:
-      - "money {player} 5000"
-      - "lp user {player} permission set treasure.vote"
-    gui:
-      name: "monthly milestone - 50votes"
-      material: DIAMOND
-      enchanted: false
-      lore:
-        - "{votes.month}/{requirements.month}"
-        - "{votes.total}/{requirements.total}"
-        - "{requirements.claimable}"
-        - "Right click to claim the reward !"
-  total_100:
-    type: "ONETIME"
-    claimable: true
-    requirements:
-      - "{vote.total} 100"
-    commands:
-      - "money {player} 50000"
-      - "lp user {player} permission set treasure.vote.100"
-    gui:
-      name: "onetime milestone - 100 votes"
-      material: EMERALD
-      enchanted: false
-      lore:
-        - "{votes.month}/{requirements.month} monthly votes"
-        - "{votes.total}/{requirements.total} total votes"
-        - "{requirements.claimable}"
-        - "Right click to claim the reward !"

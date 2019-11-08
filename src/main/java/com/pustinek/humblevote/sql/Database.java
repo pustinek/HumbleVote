@@ -266,12 +266,13 @@ public abstract class Database {
 
                     while (rs.next()) {
                         int id = rs.getInt("id");
-                        String playerId = rs.getString("playerId");
+                        String playerId = rs.getString("playerUUID");
                         String lastUsername = rs.getString("lastUsername");
-                        Integer totalVotes = rs.getInt("total");
+                        int totalVotes = rs.getInt("total");
+                        int points = rs.getInt("points");
                         String statsJSON = rs.getString("statistics");
 
-                        PlayerVoteStats playerVoteStats = new PlayerVoteStats(UUID.fromString(playerId), lastUsername, totalVotes, statsJSON);
+                        PlayerVoteStats playerVoteStats = new PlayerVoteStats(UUID.fromString(playerId), lastUsername, totalVotes,points, statsJSON);
                         playerVoteStats.setId(id);
                         playerVoteStatsHashMap.put(UUID.fromString(playerId), playerVoteStats);
                     }
@@ -293,7 +294,7 @@ public abstract class Database {
     }
 
     public void getPlayerVoteStatistics(final UUID playerID, Callback<PlayerVoteStats> callback) {
-        final String query = "SELECT * FROM " + tableVoteStatistics + " WHERE playerId = ?";
+        final String query = "SELECT * FROM " + tableVoteStatistics + " WHERE playerUUID = ?";
 
 
         new BukkitRunnable() {
@@ -312,12 +313,13 @@ public abstract class Database {
 
                     while (rs.next()) {
                         int id = rs.getInt("id");
-                        String playerId = rs.getString("playerId");
+                        String playerId = rs.getString("playerUUID");
                         String lastUsername = rs.getString("lastUsername");
-                        Integer totalVotes = rs.getInt("total");
+                        int totalVotes = rs.getInt("total");
+                        int points = rs.getInt("points");
                         String statsJSON = rs.getString("statistics");
 
-                        playerVoteStats = new PlayerVoteStats(UUID.fromString(playerId), lastUsername, totalVotes, statsJSON);
+                        playerVoteStats = new PlayerVoteStats(UUID.fromString(playerId), lastUsername, totalVotes,points, statsJSON);
                         playerVoteStats.setId(id);
                     }
 
@@ -337,8 +339,8 @@ public abstract class Database {
     }
 
     private void savePlayerStatistics(ArrayList<PlayerVoteStats> playerVoteStatsArrayList, Callback<Integer> callback) {
-        final String queryNoId = "REPLACE INTO " + tableVoteStatistics + "(playerId, lastUsername, total, statistics) VALUES (?,?,?,?)";
-        final String queryWithId = "REPLACE INTO " + tableVoteStatistics + "(id, playerId, lastUsername, total, statistics) VALUES (?,?,?,?,?)";
+        final String queryNoId = "REPLACE INTO " + tableVoteStatistics + "(playerUUID, lastUsername, total,points, statistics) VALUES (?,?,?,?,?)";
+        final String queryWithId = "REPLACE INTO " + tableVoteStatistics + "(id, playerUUID, lastUsername, total,points, statistics) VALUES (?,?,?,?,?,?)";
 
         try (Connection con = dataSource.getConnection();
              PreparedStatement ps = con.prepareStatement(queryWithId)) {
@@ -348,10 +350,11 @@ public abstract class Database {
 
             for (PlayerVoteStats playerVoteStats : playerVoteStatsArrayList) {
                 ps.setInt(1, (playerVoteStats.getId() != null ? playerVoteStats.getId() : -1));
-                ps.setString(i + 1, playerVoteStats.getPlayerId().toString());
+                ps.setString(i + 1, playerVoteStats.getPlayerUUID().toString());
                 ps.setString(i + 2, playerVoteStats.getPlayerLastUsername());
                 ps.setInt(i + 3, playerVoteStats.getTotalVoteCount());
-                ps.setString(i + 4, playerVoteStats.toJson());
+                ps.setInt(i + 4, playerVoteStats.getVotingPoints());
+                ps.setString(i + 5, playerVoteStats.toJson());
                 ps.addBatch();
             }
 
@@ -371,8 +374,8 @@ public abstract class Database {
 
     public void savePlayerStatistics(final PlayerVoteStats playerVoteStats, final Callback<Integer> callback) {
 
-        final String queryNoId = "REPLACE INTO " + tableVoteStatistics + "(playerId, lastUsername, total, statistics) VALUES (?,?,?,?)";
-        final String queryWithId = "REPLACE INTO " + tableVoteStatistics + "(id, playerId, lastUsername, total, statistics) VALUES (?,?,?,?,?)";
+        final String queryNoId = "REPLACE INTO " + tableVoteStatistics + "(playerUUID, lastUsername, total, points, statistics) VALUES (?,?,?,?,?)";
+        final String queryWithId = "REPLACE INTO " + tableVoteStatistics + "(id, playerUUID, lastUsername, total, points, statistics) VALUES (?,?,?,?,?,?)";
 
         new BukkitRunnable() {
             @Override
@@ -388,10 +391,11 @@ public abstract class Database {
                         ps.setInt(1, playerVoteStats.getId());
                     }
 
-                    ps.setString(i + 1, playerVoteStats.getPlayerId().toString());
+                    ps.setString(i + 1, playerVoteStats.getPlayerUUID().toString());
                     ps.setString(i + 2, playerVoteStats.getPlayerLastUsername());
                     ps.setInt(i + 3, playerVoteStats.getTotalVoteCount());
-                    ps.setString(i + 4, playerVoteStats.toJson());
+                    ps.setInt(i + 4, playerVoteStats.getVotingPoints());
+                    ps.setString(i + 5, playerVoteStats.toJson());
 
                     ps.executeUpdate();
 
@@ -429,7 +433,7 @@ public abstract class Database {
      * @param playerID UUID of the player
      */
     public void getPlayerRewardRecords(UUID playerID, Callback<ArrayList<PlayerRewardRecord>> callback) {
-        final String query = "SELECT * FROM " + tableRewards + " WHERE playerID = ?";
+        final String query = "SELECT * FROM " + tableRewards + " WHERE playerUUID = ?";
 
         new BukkitRunnable() {
 
@@ -447,7 +451,7 @@ public abstract class Database {
 
                     while (rs.next()) {
                         int id = rs.getInt("id");
-                        String playerId = rs.getString("playerID");
+                        String playerId = rs.getString("playerUUID");
                         String playerName = rs.getString("playerName");
                         String rewardID = rs.getString("rewardID");
                         Instant timestamp = Instant.parse(rs.getString("timestamp"));
@@ -478,8 +482,8 @@ public abstract class Database {
      * @param rewardRecord Object representing the reward received by the player
      */
     public void savePlayerVotingReward(PlayerRewardRecord rewardRecord) {
-        final String queryNoId = "REPLACE INTO " + tableRewards + "(playerId, playerName, rewardID, timestamp) VALUES (?,?,?,?)";
-        final String queryWithId = "REPLACE INTO " + tableRewards + "(id, playerId, playerName, rewardID, timestamp) VALUES (?,?,?,?,?)";
+        final String queryNoId = "REPLACE INTO " + tableRewards + "(playerUUID, playerName, rewardID, timestamp) VALUES (?,?,?,?)";
+        final String queryWithId = "REPLACE INTO " + tableRewards + "(id, playerUUID, playerName, rewardID, timestamp) VALUES (?,?,?,?,?)";
 
         new BukkitRunnable(){
 

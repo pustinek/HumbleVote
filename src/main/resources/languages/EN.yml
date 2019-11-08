@@ -25,9 +25,10 @@ cmd-onlyByPlayer: "This command can only be run by a player !"
 help-header: "┅┅┅┅┅┅┅┅┅┅┅┅ [gold]Humble vote - Help page[reset] ┅┅┅┅┅┅┅┅┅┅┅┅"
 help-alias: "Command aliases: /humblevote, /hvote."
 help-top: "► %lang:helpCommand|/hvote top|% View top voters (total or monthly)"
-help-stats: "► %lang:helpCommand|/hvote stats [server]|% View your|server statistics"
+help-stats: "► %lang:helpCommand|/hvote stats|% View your|server statistics"
 help-voting: "► %lang:helpCommand|/hvote voting|% View voting sites"
 help-rewards: "► %lang:helpCommand|/hvote rewards|% View available voting rewards"
+help-manage: "► %lang:helpCommand|/hvote manage|% Manage player votes and vote-points"
 help-reload: "► %lang:helpCommand|/hvote reload|% Reload config files"
 help-footer: "┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅"
 
@@ -37,15 +38,30 @@ rewards-monthAlreadyClaimed: "[red]You already claimed this reward this month !"
 rewards-successfullyReceived: "[green]You received the reward %0% from voting"
 rewards-requirementsNotMeet: "[red]You don't meet the requirements for this reward !"
 
-permission-insufficient: "[red]Insufficient permissions to use this command"
+# Messages used in rewards.yml file under GUI section -> {requirements.claimable}
+rewards-placeholder-claim-alreadyClaimed: "[dark_blue]Already claimed"
+rewards-placeholder-claim-readyToBeClaimed: "[green]Reward Can be claimed"
+rewards-placeholder-claim-requirementsNotMeet: "[red]Requirements not meet"
 
+
+permission-insufficient: "[red]Insufficient permissions to use this command"
 
 top-help: "/hvote top [monthly]"
 
 reload-success: "[green]You successfully reloaded the config file."
 
+manage-help: "► [dark_purple]/hvote manage <player_name> <type> <modification> <value>"
+manage-successAdd: "[green] You successfully added [reset]%0%[green] %1% to %2% (%3% -> %4%)."
+manage-successSubtract: "[green] You successfully subtracted [reset]%0%[green] %1% from %2% (%3% -> %4%)."
+manage-successSet: "[green] You successfully set [reset]%0%[green] %1% for %2% (%3% -> %4%)"
+manage-noPlayerStats: "[red]Couldn't find any voting statistics for player [reset]%0%."
+
+
+stats-help: "► [dark_purple]/hvote stats [player | server] [player_name]"
+stats-noStats: "[red]Couldn't find any voting statistics for player &f%0%."
 stats: "┅┅┅┅┅┅┅┅┅┅┅┅ [gold] %0% vote stats[reset] ┅┅┅┅┅┅┅┅┅┅┅┅┅┅\n
       [gold]Total votes:[reset] %1%\n
       [gold]Monthly votes:[reset] %2%\n
-      [gold]Current Time:[reset] %3%\n
+      [gold]Voting points:[reset] %3%\n
+      [gold]Current Time:[reset] %4%\n
       [reset]┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅"

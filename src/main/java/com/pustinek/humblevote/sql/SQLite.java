@@ -49,9 +49,10 @@ public class SQLite extends Database {
     String getQueryCreateTableVoteStatistics() {
         return "CREATE TABLE IF NOT EXISTS " + tableVoteStatistics + " ("
                 + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                + "playerId VARCHAR(36) NOT NULL,"
-                + "lastUsername VARCHAR(36) NOT NULL,"
-                + "total TINYTEXT NOT NULL,"
+                + "playerUUID VARCHAR(36) NOT NULL,"
+                + "lastUsername TINYTEXT NOT NULL,"
+                + "total INTEGER NOT NULL,"
+                + "points INTEGER NOT NULL,"
                 + "statistics TEXT NOT NULL)";
     }
 
@@ -70,7 +71,7 @@ public class SQLite extends Database {
     String getQueryCreateTableRewards() {
         return "CREATE TABLE IF NOT EXISTS " + tableRewards + " ("
                 + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                + "playerID VARCHAR(36) NOT NULL,"
+                + "playerUUID VARCHAR(36) NOT NULL,"
                 + "playerName TINYTEXT NOT NULL,"
                 + "rewardID TINYTEXT NOT NULL,"
                 + "timestamp TINYTEXT NOT NULL)";

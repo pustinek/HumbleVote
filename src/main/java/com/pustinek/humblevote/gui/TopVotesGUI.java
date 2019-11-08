@@ -4,7 +4,7 @@ import com.pustinek.humblevote.Main;
 import com.pustinek.humblevote.utils.GUIItemGenerator;
 import com.pustinek.humblevote.voteStatistics.PlayerVoteStatisticsManager;
 import com.pustinek.humblevote.voteStatistics.PlayerVoteStats;
-import com.pustinek.humblevote.voteStatistics.TopVoteStatsType;
+import com.pustinek.humblevote.voteStatistics.constants.TOP_VOTES_STATS_TYPE;
 import fr.minuskube.inv.ClickableItem;
 import fr.minuskube.inv.content.InventoryContents;
 import fr.minuskube.inv.content.InventoryProvider;
@@ -22,9 +22,9 @@ import java.util.List;
 public class TopVotesGUI implements InventoryProvider {
 
 
-    protected final TopVoteStatsType voteStats;
+    protected final TOP_VOTES_STATS_TYPE voteStats;
 
-    public TopVotesGUI(TopVoteStatsType voteStats) {
+    public TopVotesGUI(TOP_VOTES_STATS_TYPE voteStats) {
         this.voteStats = voteStats;
     }
 
@@ -68,9 +68,9 @@ public class TopVotesGUI implements InventoryProvider {
         inventoryContents.fillRow(4, navBorder);
 
         inventoryContents.set(4, 0, ClickableItem.of(
-                GUIItemGenerator.itemGenerator(voteStats == TopVoteStatsType.MONTH ? "&4Top Monthly Votes" : "&4Top Total Votes", Material.SEA_PICKLE, Collections.singletonList(""))
+                GUIItemGenerator.itemGenerator(voteStats == TOP_VOTES_STATS_TYPE.MONTH ? "&4Top Monthly Votes" : "&4Top Total Votes", Material.SEA_PICKLE, Collections.singletonList(""))
                 ,
-                e -> GUIManager.displayTopVotersGUI(voteStats == TopVoteStatsType.MONTH ? TopVoteStatsType.TOTAL : TopVoteStatsType.MONTH).open(player)));
+                e -> GUIManager.displayTopVotersGUI(voteStats == TOP_VOTES_STATS_TYPE.MONTH ? TOP_VOTES_STATS_TYPE.TOTAL : TOP_VOTES_STATS_TYPE.MONTH).open(player)));
         inventoryContents.set(4, 6, ClickableItem.of(
                 GUIItemGenerator.itemGenerator("&2previous page", Material.ARROW, Collections.singletonList(""))
                 ,

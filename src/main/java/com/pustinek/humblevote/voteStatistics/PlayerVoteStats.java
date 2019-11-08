@@ -2,6 +2,10 @@ package com.pustinek.humblevote.voteStatistics;
 
 import com.grack.nanojson.*;
 import com.pustinek.humblevote.Main;
+import com.pustinek.humblevote.utils.Utils;
+import com.pustinek.humblevote.voteStatistics.constants.MODIFICATION_TYPE;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
 import java.time.YearMonth;
 import java.time.ZoneId;
@@ -16,18 +20,20 @@ public class PlayerVoteStats {
     private boolean needsDatabaseSync = false;
 
 
-    private UUID playerId; // UUID of the player
+    private UUID playerUUID; // UUID of the player
     private String playerLastUsername; // username that the player used lastly
 
     private int totalVoteCount;
+    private int points = 0;
     private HashMap<String, String> voteSiteStatistics = new HashMap<>(); // vote site statistics (vote-site / timestamp )
     private ArrayList<MonthlyStats> monthlyVoteStatistics = new ArrayList<>();
     private MonthlyStats currentMonthlyVoteStats = null;
 
-    public PlayerVoteStats(UUID playerId, String username, Integer totalVoteCount, String jsonString) {
-        this.playerId = playerId;
+    public PlayerVoteStats(UUID playerId, String username, Integer totalVoteCount, int points, String jsonString) {
+        this.playerUUID = playerId;
         this.playerLastUsername = username;
         this.totalVoteCount = totalVoteCount;
+        this.points = points;
         fromJson(jsonString);
         monthlyStatisticsCheck();
     }
@@ -67,7 +73,49 @@ public class PlayerVoteStats {
         // Before incrementing check if it's current month
         monthlyStatisticsCheck();
         currentMonthlyVoteStats.incrementVoteCount();
+
+        // Voting point check
+        Player player = Bukkit.getPlayer(playerUUID);
+        int pointsToGive = 1;
+        if(player != null)
+           pointsToGive = Utils.votePointCalculator(player);
+
+        Main.debug("giving " + pointsToGive + " to player " + playerLastUsername);
+        points += pointsToGive;
+
         needsDatabaseSync = true;
+    }
+
+
+    public int modifyVoteCount(MODIFICATION_TYPE type, int value) {
+        switch (type) {
+            case ADD:
+                totalVoteCount += value;
+                break;
+            case SET:
+                totalVoteCount = value;
+                break;
+            case SUBTRACT:
+                totalVoteCount -= value;
+                break;
+        }
+        needsDatabaseSync = true;
+        return totalVoteCount;
+    }
+    public int modifyVotePoints(MODIFICATION_TYPE type, int value) {
+        switch (type) {
+            case ADD:
+                points += value;
+                break;
+            case SET:
+                points = value;
+                break;
+            case SUBTRACT:
+                points -= value;
+                break;
+        }
+        needsDatabaseSync = true;
+        return points;
     }
 
 
@@ -125,8 +173,8 @@ public class PlayerVoteStats {
         return (id != null);
     }
 
-    public UUID getPlayerId() {
-        return playerId;
+    public UUID getPlayerUUID() {
+        return playerUUID;
     }
 
     public String getPlayerLastUsername() {
@@ -137,11 +185,20 @@ public class PlayerVoteStats {
         return totalVoteCount;
     }
 
+    public int getVotingPoints() {
+        return points;
+    }
 
     public int getMonthlyVoteCount(YearMonth date) {
         MonthlyStats stats = monthlyVoteStatistics.stream().filter(monthlyStats -> monthlyStats.getDate().equals(date)).findAny().orElse(null);
         return stats != null ? stats.getVoteCount() : 0;
     }
+
+    public int getMonthlyVoteCount() {
+        YearMonth yearMonth = Main.getTimeManager().getYearMonth();
+        return getMonthlyVoteCount(yearMonth);
+    }
+
 
     public String getPlayerVoteSiteLastVoteTimestamp(String voteSiteServiceName) {
         return voteSiteStatistics.get(voteSiteServiceName);

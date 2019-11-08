@@ -4,19 +4,27 @@ main: com.pustinek.humblevote.Main
 api-version: "1.13"
 authors: [Pustinek]
 depend: [Votifier]
-softdepend: [PlaceholderAPI]
+softdepend: [PlaceholderAPI, Vault]
 description: "Voting plugin for minecraft"
 commands:
   humblevote:
     description: 'for all the commands use /HumbleVote help'
     usage: 'change_me_plugin_name has not started correctly, check the log file (or console) and correct any errors.'
-    aliases: []
+    aliases: [hvote]
 permissions:
   humblevote.*:
     description: 'Give access to all commands of McTemplate'
     default: op
     children:
       humblevote.reload: true
+      humblevote.voting: true
+      humblevote.manage: true
   humblevote.reload:
     description: 'reload plugin config files'
     default: op
+  humblevote.manage:
+    description: 'Manage player stats'
+    default: op
+  humblevote.voting:
+    description: "all plugin functionality"
+    default: true
