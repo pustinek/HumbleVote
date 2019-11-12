@@ -33,6 +33,9 @@ public class ConfigManager extends Manager {
     private String voteReminderMessage;
     private boolean voteReminderDisableOnAllVotes;
 
+    private boolean messageEnabled;
+    private String messageContent;
+
 
 
     //Development-section variables
@@ -116,17 +119,25 @@ public class ConfigManager extends Manager {
         String timezoneIdAsString = section.getString("timezone_id", "UTC");
         zoneId = ZoneId.of(timezoneIdAsString);
 
-        // vote_notification section:
-        ConfigurationSection notificationCS = section.getConfigurationSection("vote_notification");
-        if(notificationCS == null) {
-            Main.warning("vote_notification is missing in config.yml file !");
+        // === vote_message section ===
+        ConfigurationSection messageCS = section.getConfigurationSection("vote_message");
+        if (messageCS != null) {
+            messageEnabled = messageCS.getBoolean("enabled", true);
+            messageContent = messageCS.getString("message", "You successfully voted on website {vote_site}.");
+        }
+
+
+        // === vote_notification section ===
+        ConfigurationSection broadcastCS = section.getConfigurationSection("vote_broadcast");
+        if (broadcastCS == null) {
+            Main.warning("vote_broadcast is missing in config.yml file !");
             return;
         }
-        notificationBroadcastEnabled = notificationCS.getBoolean("queued_broadcast", false);
-        notificationWaitTime = notificationCS.getInt("queued_broadcast_wait_time", 1200);
-        notificationBroadcastMessage = notificationCS.getString("broadcast_message", "Player has voted ");
+        notificationBroadcastEnabled = broadcastCS.getBoolean("queued_broadcast", false);
+        notificationWaitTime = broadcastCS.getInt("queued_broadcast_wait_time", 1200);
+        notificationBroadcastMessage = broadcastCS.getString("broadcast_message", "Player has voted ");
 
-        // vote_reminder section:
+        // === vote_reminder section ===
         ConfigurationSection reminderCS = section.getConfigurationSection("vote_reminder");
         if(reminderCS == null) {
             Main.warning("vote_reminder section is missing in config.yml file !");

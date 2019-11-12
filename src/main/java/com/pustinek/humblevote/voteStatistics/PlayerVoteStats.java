@@ -1,6 +1,9 @@
 package com.pustinek.humblevote.voteStatistics;
 
-import com.grack.nanojson.*;
+import com.grack.nanojson.JsonArray;
+import com.grack.nanojson.JsonParser;
+import com.grack.nanojson.JsonParserException;
+import com.grack.nanojson.JsonWriter;
 import com.pustinek.humblevote.Main;
 import com.pustinek.humblevote.utils.Utils;
 import com.pustinek.humblevote.voteStatistics.constants.MODIFICATION_TYPE;
@@ -10,7 +13,6 @@ import org.bukkit.entity.Player;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.UUID;
 
 public class PlayerVoteStats {
@@ -24,8 +26,8 @@ public class PlayerVoteStats {
     private String playerLastUsername; // username that the player used lastly
 
     private int totalVoteCount;
-    private int points = 0;
-    private HashMap<String, String> voteSiteStatistics = new HashMap<>(); // vote site statistics (vote-site / timestamp )
+    private int points;
+    //private HashMap<String, String> voteSiteStatistics = new HashMap<>(); // vote site statistics (vote-site / timestamp )
     private ArrayList<MonthlyStats> monthlyVoteStatistics = new ArrayList<>();
     private MonthlyStats currentMonthlyVoteStats = null;
 
@@ -34,7 +36,7 @@ public class PlayerVoteStats {
         this.playerLastUsername = username;
         this.totalVoteCount = totalVoteCount;
         this.points = points;
-        fromJson(jsonString);
+        parseJSONToMonthlyStats(jsonString);
         monthlyStatisticsCheck();
     }
 
@@ -50,7 +52,6 @@ public class PlayerVoteStats {
         if (Main.getConfigManager().devEnabled) {
             currentYearMonth = YearMonth.of(Main.getConfigManager().devYear, Main.getConfigManager().devMonth);
         }
-        //Main.debug("[VoteStatistics] using yearMonth: " + currentYearMonth);
         YearMonth finalCurrentYearMonth = currentYearMonth;
 
         if (currentMonthlyVoteStats != null && currentMonthlyVoteStats.getDate().equals(currentYearMonth)) return;
@@ -80,7 +81,6 @@ public class PlayerVoteStats {
         if(player != null)
            pointsToGive = Utils.votePointCalculator(player);
 
-        Main.debug("giving " + pointsToGive + " to player " + playerLastUsername);
         points += pointsToGive;
 
         needsDatabaseSync = true;
@@ -102,6 +102,7 @@ public class PlayerVoteStats {
         needsDatabaseSync = true;
         return totalVoteCount;
     }
+
     public int modifyVotePoints(MODIFICATION_TYPE type, int value) {
         switch (type) {
             case ADD:
@@ -119,30 +120,15 @@ public class PlayerVoteStats {
     }
 
 
-
-    void addVoteSiteStatistic(String voteSiteServiceName, String timestamp) {
-        needsDatabaseSync = true;
-        voteSiteStatistics.put(voteSiteServiceName, timestamp);
-    }
-
-    private void fromJson(String json) {
+    private void parseJSONToMonthlyStats(String json) {
         if (json == null || json.equals("")) return;
 
         try {
-            JsonObject voteSitesObj = JsonParser.object().from(json).getObject("voteSites");
             JsonArray monthlyStatsObj = JsonParser.object().from(json).getArray("months");
 
-
-            voteSitesObj.forEach((a, b) -> {
-                if (b instanceof String) {
-                    voteSiteStatistics.put(a, b.toString());
-                } else {
-                    Main.error("failed to parse voteSite statistics from database !");
-                }
-            });
             monthlyStatsObj.forEach(a -> {
-                Integer number = null;
-                String dateString = null;
+                Integer number;
+                String dateString;
                 try {
                     number = JsonParser.object().from(a.toString()).getInt("total");
                     dateString = JsonParser.object().from(a.toString()).getString("date");
@@ -200,10 +186,6 @@ public class PlayerVoteStats {
     }
 
 
-    public String getPlayerVoteSiteLastVoteTimestamp(String voteSiteServiceName) {
-        return voteSiteStatistics.get(voteSiteServiceName);
-    }
-
     public boolean isNeedsDatabaseSync() {
         return needsDatabaseSync;
     }
@@ -213,7 +195,7 @@ public class PlayerVoteStats {
     }
 
 
-    public String toJson() {
+    public String getMonthlyStatisticsAsJSON() {
 
         ArrayList<String> monthlyStatsString = new ArrayList<>();
         monthlyVoteStatistics.forEach(monthlyStats -> {
@@ -226,8 +208,6 @@ public class PlayerVoteStats {
 
 
         return JsonWriter.string().object()
-                .value("totalVoteCount", totalVoteCount)
-                .value("voteSites", voteSiteStatistics)
                 .array("months", monthlyStatsString)
                 .end().done();
     }

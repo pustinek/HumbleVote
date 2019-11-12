@@ -16,6 +16,8 @@ public class VoteSitesManager extends Manager {
     private final Main plugin;
 
     private static ArrayList<VoteSite> voteSitesArrayList = new ArrayList<>();
+    private static ArrayList<String> onClickMessage = new ArrayList<>();
+
 
     public VoteSitesManager(Main plugin) {
         this.plugin = plugin;
@@ -40,7 +42,6 @@ public class VoteSitesManager extends Manager {
         //create file if it doesn't exist
         if(!customConfigFile.exists()) {
             customConfigFile.getParentFile().mkdirs();
-
         }
         plugin.saveResource("voteSites.yml", false);
         customConfig= new YamlConfiguration();
@@ -49,6 +50,9 @@ public class VoteSitesManager extends Manager {
         } catch (IOException | InvalidConfigurationException e) {
             e.printStackTrace();
         }
+
+
+        onClickMessage = new ArrayList<>(customConfig.getStringList("click_message"));
 
         // === Start loading data ===
 
@@ -65,19 +69,23 @@ public class VoteSitesManager extends Manager {
             VoteSite voteSite = new VoteSite(
                     voteSites.getBoolean(key + ".enabled", true),
                     voteSites.getString(key + ".service_site"),
-                    new ArrayList<>(voteSites.getStringList(key + ".vote_url")),
+                    voteSites.getString(key + ".vote_url"),
                     voteSites.getLong(key + ".vote_cooldown"),
-                    voteSites.getStringList(key + ".rewards"),
                     new VoteSite.GUIItem(
                             guiSection.getString("name", "default"),
                             new ArrayList<>(guiSection.getStringList("lore")),
                             guiSection.getString("enabled_icon", "STONE"),
                             guiSection.getString("disabled_icon", "STONE")
-                    ));
+                    ),
+                    voteSites.getBoolean(key + ".display_in_menu", true)
+            );
             voteSitesArrayList.add(voteSite);
         }
     }
 
+    ArrayList<String> getOnClickMessage() {
+        return onClickMessage;
+    }
 
     public ArrayList<VoteSite> getVoteSites() {
         return new ArrayList<>(voteSitesArrayList);

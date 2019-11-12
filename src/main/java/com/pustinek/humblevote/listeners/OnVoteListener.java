@@ -65,8 +65,10 @@ public class OnVoteListener implements Listener {
                 );
 
              Main.debug(
-                    "Vote was received from website " +
-                            queuedVote.getAddress()+
+                     "Vote was received::: address:  " +
+                             queuedVote.getAddress() +
+                             ", service_name: " +
+                             queuedVote.getServiceName() +
                     ", voted by username " + queuedVote.getUsername() +
                             ", and was processed as " + (isFakeVote ? "FAKE" : "TRUSTWORTHY")
             );

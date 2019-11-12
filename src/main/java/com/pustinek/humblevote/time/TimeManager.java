@@ -26,6 +26,13 @@ public class TimeManager extends Manager {
     }
 
     @Override
+    public void shutdown() {
+        // Shutdown cleanup
+        devInstant = null;
+        devYearMonth = null;
+    }
+
+    @Override
     public void reload() {
             LocalDateTime devLocalTime = LocalDateTime.of(configManager.devYear, configManager.devMonth, configManager.devDay,  configManager.devHour,  configManager.devMinute);
             ZoneOffset zoneOffSet= ZoneOffset.of(configManager.devZoneOffset);

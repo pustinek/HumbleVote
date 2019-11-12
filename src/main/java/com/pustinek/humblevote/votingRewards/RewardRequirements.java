@@ -1,15 +1,15 @@
 package com.pustinek.humblevote.votingRewards;
 
-public class RewardRequirements {
+class RewardRequirements {
 
-    public int monthlyVotes;
-    public int totalVotes;
-    public int serverMonthlyVotes;
-    public int serverTotalVotes;
-    public int votingPoints;
+    private int monthlyVotes;
+    private int totalVotes;
+    private int serverMonthlyVotes;
+    private int serverTotalVotes;
+    private int votingPoints;
 
 
-    public RewardRequirements(int monthlyVotes, int totalVotes, int serverMonthlyVotes, int serverTotalVotes, int votingPoints) {
+    RewardRequirements(int monthlyVotes, int totalVotes, int serverMonthlyVotes, int serverTotalVotes, int votingPoints) {
         this.monthlyVotes = monthlyVotes;
         this.totalVotes = totalVotes;
         this.serverMonthlyVotes = serverMonthlyVotes;
@@ -17,23 +17,23 @@ public class RewardRequirements {
         this.votingPoints =votingPoints;
     }
 
-    public int getMonthlyVotes() {
+    int getMonthlyVotes() {
         return monthlyVotes;
     }
 
-    public int getTotalVotes() {
+    int getTotalVotes() {
         return totalVotes;
     }
 
-    public int getServerMonthlyVotes() {
+    int getServerMonthlyVotes() {
         return serverMonthlyVotes;
     }
 
-    public int getServerTotalVotes() {
+    int getServerTotalVotes() {
         return serverTotalVotes;
     }
 
-    public int getVotingPoints() {
+    int getVotingPoints() {
         return votingPoints;
     }
 }

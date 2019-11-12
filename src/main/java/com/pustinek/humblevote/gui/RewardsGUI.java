@@ -32,9 +32,7 @@ public class RewardsGUI implements InventoryProvider {
                 }
 
             });
-
             double d = (i / (double)9);
-
             provider.set(
                     Utils.limitInt((int)Math.floor(d), 8, 0),
                     i % 9,

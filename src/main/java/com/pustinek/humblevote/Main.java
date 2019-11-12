@@ -23,6 +23,7 @@ import me.wiefferink.interactivemessenger.source.LanguageManager;
 import net.milkbowl.vault.economy.Economy;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -59,51 +60,12 @@ public final class Main extends JavaPlugin {
     // General variables:
 
 
-
-
-    @Override
-    public void onEnable() {
-        // load logger
-        logger = this.getLogger();
-        plugin = this;
-        // Plugin startup logic
-
-        boolean econIsReady = setupEconomy();
-        if(econIsReady) {
-            logger.info("Successfully hoked into vault - economy ");
+    public static RewardManager getRewardManager() {
+        if (rewardManager == null) {
+            rewardManager = new RewardManager(plugin);
+            managers.add(rewardManager);
         }
-
-        // Load config manager first ->
-        if(configManager == null) {
-            configManager = new ConfigManager(this);
-            managers.add(configManager);
-        }
-
-
-        initDatabases();
-        loadManagers();
-        registerListeners();
-
-        if(Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null){
-            new Placeholders(this).register();
-        }
-
-        LanguageManager languageManager = new LanguageManager(
-                this,                                  // The plugin (used to get the languages bundled in the jar file)
-                "languages",                           // Folder where the languages are stored
-                getConfig().getString("language"),     // The language to use indicated by the plugin user
-                "EN",                                  // The default language, expected to be shipped with the plugin and should be complete, fills in gaps in the user-selected language
-                Collections.singletonList(getConfigManager().getPluginMessagePrefix()) // Chat prefix to use with Message#prefix(), could of course come from the config file
-        );
-
-
-    }
-
-    @Override
-    public void onDisable() {
-        // Plugin shutdown logic
-        Main.getVoteManager().saveAllQueuedVotesToDatabase(false);
-        Main.getVoteStatisticsManager().saveAllPlayerVoteStatsToDatabase(false);
+        return rewardManager;
     }
 
     /**
@@ -114,44 +76,6 @@ public final class Main extends JavaPlugin {
         logger.warning(message);
     }
 
-    /**
-     * Print a debug msg to the console.
-     * @param message The message to print
-     */
-    public static void debug(String message) {
-        if (ConfigManager.isDebug)
-            logger.info(message);
-    }
-
-    /**
-     * Send a message to a target without a prefix.
-     *
-     * @param target       The target to send the message to
-     * @param key          The key of the language string
-     * @param replacements The replacements to insert in the message
-     */
-    public static void messageNoPrefix(Object target, String key, Object... replacements) {
-        Message.fromKey(key).replacements(replacements).send(target);
-    }
-
-    /**
-     * Send a message to a target, prefixed by the default chat prefix.
-     *
-     * @param target       The target to send the message to
-     * @param key          The key of the language string
-     * @param replacements The replacements to insert in the message
-     */
-    public static void message(Object target, String key, Object... replacements) {
-        Message.fromKey(key).prefix().replacements(replacements).send(target);
-    }
-
-    /**
-     * Print an error to the console.
-     * @param message The message to print
-     */
-    public static void error(Object... message) {
-        logger.severe(StringUtils.join(message, " "));
-    }
 
     public static CommandManager getCommandManager() {
         return commandManager;
@@ -227,9 +151,14 @@ public final class Main extends JavaPlugin {
         return voteReminderManager;
     }
 
-
-    public static RewardManager getRewardManager() {
-        return rewardManager;
+    /**
+     * Print a debug msg to the console.
+     *
+     * @param message The message to print
+     */
+    public static void debug(String message) {
+        if (ConfigManager.isDebug)
+            logger.info(message);
     }
 
     public static Economy getEconomy() {
@@ -341,6 +270,80 @@ public final class Main extends JavaPlugin {
         }
         econ = rsp.getProvider();
         return true;
+    }
+
+    /**
+     * Send a message to a target without a prefix.
+     *
+     * @param target       The target to send the message to
+     * @param key          The key of the language string
+     * @param replacements The replacements to insert in the message
+     */
+    public static void messageNoPrefix(Object target, String key, Object... replacements) {
+        Message.fromKey(key).replacements(replacements).send(target);
+    }
+
+    /**
+     * Send a message to a target, prefixed by the default chat prefix.
+     *
+     * @param target       The target to send the message to
+     * @param key          The key of the language string
+     * @param replacements The replacements to insert in the message
+     */
+    public static void message(Object target, String key, Object... replacements) {
+        Message.fromKey(key).prefix().replacements(replacements).send(target);
+    }
+
+    /**
+     * Print an error to the console.
+     *
+     * @param message The message to print
+     */
+    public static void error(Object... message) {
+        logger.severe(StringUtils.join(message, " "));
+    }
+
+    @Override
+    public void onEnable() {
+        // load logger
+        logger = this.getLogger();
+        plugin = this;
+        // Plugin startup logic
+
+        boolean econIsReady = setupEconomy();
+        if (econIsReady) {
+            logger.info("Successfully hoked into vault - economy ");
+        }
+
+        // Load config manager first ->
+        if (configManager == null) {
+            configManager = new ConfigManager(this);
+            managers.add(configManager);
+        }
+
+
+        initDatabases();
+        loadManagers();
+        registerListeners();
+
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new Placeholders(this).register();
+        }
+
+        new LanguageManager(
+                this,                                  // The plugin (used to get the languages bundled in the jar file)
+                "languages",                           // Folder where the languages are stored
+                getConfig().getString("language", "EN"),     // The language to use indicated by the plugin user
+                "EN",                                  // The default language, expected to be shipped with the plugin and should be complete, fills in gaps in the user-selected language
+                Collections.singletonList(getConfigManager().getPluginMessagePrefix()) // Chat prefix to use with Message#prefix(), could of course come from the config file
+        );
+    }
+
+    @Override
+    public void onDisable() {
+        // Plugin shutdown logic
+        HandlerList.unregisterAll();
+        managers.forEach(Manager::shutdown);
     }
 
 }

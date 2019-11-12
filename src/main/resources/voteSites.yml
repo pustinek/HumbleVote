@@ -1,16 +1,19 @@
 #
 # Reward for any site
 #
+
+# Message displayed on item click in GUI
+# Available placeholders: {vote_url}
+click_message:
+  - "{vote_url}"
+
 vote_sites:
   vote_1:
     enabled: true
     # vote_url will be displayed when you click on the icon in GUI
-    vote_url:
-      - "&7Vote Link -> &4https://DogeCraft.net/vote1"
+    vote_url: "https://server.net/vote1"
     vote_cooldown: 1440 #cooldown in minutes (1440min == 24h)
-    rewards:
-      - basic_vote
-    service_site: dogecraft-wiki-1
+    service_site: "mc-wi"
     gui:
       name: Vote_1
       enabled_icon: GREEN_STAINED_GLASS_PANE
@@ -21,31 +24,9 @@ vote_sites:
   vote_2:
     enabled: true
     # vote_url will be displayed when you click on the icon in GUI
-    vote_url:
-      - "&7Vote Link -> &4https://DogeCraft.net/vote2"
+    vote_url: "https://server.net/vote2"
     vote_cooldown: 1440 #cooldown in minutes (1440min == 24h)
-    rewards:
-      - basic_vote
     service_site: dogecraft-wiki-2
-    gui:
-      name: Vote_1
-      enabled_icon: GREEN_STAINED_GLASS_PANE
-      disabled_icon: RED_STAINED_GLASS_PANE
-      lore:
-        - "vote here one"
-        - "cooldown: {cooldown}"
-
-  vote_3:
-    enabled: true
-    # vote_url will be displayed when you click on the icon in GUI
-    vote_url:
-      - "=================="
-      - "DogeCraft.net/vote1"
-      - "=================="
-    vote_cooldown: 1440
-    rewards:
-      - basic_vote
-    service_site: Minecraft-Server.net
     gui:
       name: Vote_1
       enabled_icon: GREEN_STAINED_GLASS_PANE

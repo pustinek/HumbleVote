@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 public class Reward {
 
     private String id;
+    private boolean enabled;
     private boolean claimable;
     private List<String> rewards;
     private REWARD_TYPE REWARDTYPE;
@@ -29,9 +30,11 @@ public class Reward {
     private String GUIName;
     private List<String> GUILore;
     private Material GUIMaterial;
+    private boolean displayGUI;
 
-    public Reward(String id, REWARD_TYPE REWARDTYPE, boolean claimable, RewardRequirements requirements, List<String > rewards, String GUIName, List<String> GUILore, Material GUIMaterial) {
+    Reward(String id, boolean enabled, REWARD_TYPE REWARDTYPE, boolean claimable, RewardRequirements requirements, List<String> rewards, String GUIName, List<String> GUILore, Material GUIMaterial, boolean displayGUI) {
         this.id = id;
+        this.enabled = enabled;
         this.claimable = claimable;
         this.requirements = requirements;
         this.rewards = rewards;
@@ -39,10 +42,12 @@ public class Reward {
         this.GUIName = GUIName;
         this.GUILore = GUILore;
         this.GUIMaterial = GUIMaterial;
+        this.displayGUI = displayGUI;
     }
 
 
     public ItemStack buildGUIItem(Player player) {
+        boolean readyToBeClaimed = false;
         YearMonth yearMonth = Main.getTimeManager().getYearMonth();
         ItemStack itemStack = new ItemStack(GUIMaterial);
         ItemMeta itemMeta = itemStack.getItemMeta();
@@ -74,7 +79,7 @@ public class Reward {
         replaceMap.put("{votes.server.month}", String.valueOf(Main.getVoteStatisticsManager().getServerTotalVotes(TOP_VOTES_STATS_TYPE.MONTH)));
         replaceMap.put("{config.claimable}", String.valueOf(isClaimable()));
         replaceMap.put("{config.type}", REWARDTYPE.toString());
-        if(playerRewardRecord == null) {
+        if (playerRewardRecord == null && !REWARDTYPE.equals(REWARD_TYPE.ONVOTE)) {
             if(ps.getMonthlyVoteCount(yearMonth) >= requirements.getMonthlyVotes() && ps.getTotalVoteCount() >= requirements.getTotalVotes()) {
                 replaceMap.put("{requirements.claimable}", Message.fromKey("rewards-placeholder-claim-readyToBeClaimed").getPlain());
             }else{
@@ -84,11 +89,17 @@ public class Reward {
             replaceMap.put("{requirements.claimable}", Message.fromKey("rewards-placeholder-claim-alreadyClaimed").getPlain());
         }
 
-
        final ArrayList<String> finalLore = Utils.replaceStuffInString(replaceMap, (ArrayList<String>) getGUILore());
         itemMeta.setDisplayName(ChatUtils.chatColor(GUIName));
         itemMeta.setLore(ChatUtils.chatColor(finalLore));
+
+
         itemStack.setItemMeta(itemMeta);
+     /*   if(isPlayerEligible(player) && !(REWARDTYPE.equals(REWARD_TYPE.ONVOTE))) {
+            Main.debug("adding enchant to reward Item" + id);
+            itemStack.addUnsafeEnchantment(Enchantment.DURABILITY, 1);
+        }*/
+
         return itemStack;
 
     }
@@ -109,7 +120,7 @@ public class Reward {
      *
      * @param player player to check
      * */
-    public boolean isPlayerMeetsRequirements(Player player) {
+    boolean isPlayerMeetsRequirements(Player player) {
 
         PlayerVoteStats playerVoteStats = Main.getVoteStatisticsManager().getPlayerVoteStats(player.getUniqueId());
         YearMonth currentYearMonth = Main.getTimeManager().getYearMonth();
@@ -128,7 +139,7 @@ public class Reward {
      *
      * @param player player to check
      * */
-    public boolean isPlayerAlreadyClaimed(Player player) {
+    boolean isPlayerAlreadyClaimed(Player player) {
         ArrayList<PlayerRewardRecord> playerRewardRecords = Main.getRewardManager().getPlayerRewardRecords(player.getUniqueId());
         ArrayList<PlayerRewardRecord> filteredRewardRecords = playerRewardRecords.stream().filter(prr -> prr.getRewardID().equals(id)).collect(Collectors.toCollection(ArrayList::new));
         YearMonth currentYearMonth = Main.getTimeManager().getYearMonth();
@@ -154,38 +165,40 @@ public class Reward {
         return id;
     }
 
-    public REWARD_TYPE getREWARDTYPE() {
+    REWARD_TYPE getREWARDTYPE() {
         return REWARDTYPE;
     }
 
-    public Integer getReqTotalVotes() {
+    private Integer getReqTotalVotes() {
         return requirements.getTotalVotes();
     }
 
-    public Integer getReqMonthlyVotes() {
+    private Integer getReqMonthlyVotes() {
         return requirements.getMonthlyVotes();
     }
 
-    public int getReqVotingPoints() { return requirements.getVotingPoints(); }
+    int getReqVotingPoints() {
+        return requirements.getVotingPoints();
+    }
 
-    public RewardRequirements getRequirements() {
+    private RewardRequirements getRequirements() {
         return requirements;
     }
 
 
-    public boolean isClaimable() {
+    boolean isClaimable() {
         return claimable;
     }
 
-    public List<String> getRewards() {
+    List<String> getRewards() {
         return rewards;
     }
 
-    public List<String> getGUILore() {
+    private List<String> getGUILore() {
         return GUILore;
     }
 
-    public String getGUIName() {
+    String getGUIName() {
         return GUIName;
     }
 }

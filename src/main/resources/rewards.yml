@@ -1,5 +1,4 @@
-# type == "ONVOTE | MONTHLY | ONETIME"
-# all possible variables are found  @ https://github.com/pustinek/HumbleVote
+# all possible variables are found  @ https://github.com/pustinek/HumbleVote/wiki
 rewards:
   basic_vote: #This line should be unique (id)
       enabled: true
@@ -10,6 +9,7 @@ rewards:
         - "money 3000"
         - "message {player} You voted so you receive 2000 $"
       gui:
+        display_in_menu: true
         name: "basic vote"
         material: DIAMOND
         enchanted: false

@@ -22,6 +22,13 @@ public class VoteManager extends Manager {
     }
 
 
+    @Override
+    public void shutdown() {
+        // Shutdown cleanup
+        saveAllQueuedVotesToDatabase(false);
+    }
+
+
     /**
      * Process single player vote
      *
@@ -30,8 +37,6 @@ public class VoteManager extends Manager {
     public boolean processPlayerVote(QueuedVote vote, Player player) {
         if(player == null || !player.isOnline()) return false;
 
-
-        player.sendMessage("You voted on website" + vote.getServiceName() + " !");
         Main.debug("processing vote from player" + player.getName());
 
         Main.getNotificationManager().processNotification(player, vote);

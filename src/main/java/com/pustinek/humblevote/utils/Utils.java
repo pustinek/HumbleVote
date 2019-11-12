@@ -2,7 +2,7 @@ package com.pustinek.humblevote.utils;
 
 import com.pustinek.humblevote.Main;
 import com.pustinek.humblevote.voteSites.VoteSite;
-import com.pustinek.humblevote.voteStatistics.PlayerVoteStats;
+import com.pustinek.humblevote.voteStatistics.PlayerVoteSiteHistory;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissionAttachmentInfo;
 
@@ -62,20 +62,17 @@ public class Utils {
     }
 
     public static long getPlayerVoteSiteCooldown(Player player, VoteSite voteSite) {
-
-        PlayerVoteStats ps = Main.getVoteStatisticsManager().getPlayerVoteStats(player.getUniqueId());
-
         long timeElapsed = 99999;
         long voteCooldown = voteSite.getVoteCooldown();
-        if(ps != null) {
-            String voteTimestamp = ps.getPlayerVoteSiteLastVoteTimestamp(voteSite.getService_site());
-            if(voteTimestamp != null) {
+        PlayerVoteSiteHistory playerVoteSiteHistory = Main.getVoteStatisticsManager().getPlayerVoteSiteHistory(player.getUniqueId(), voteSite.getService_site());
+        if (playerVoteSiteHistory != null) {
+            String voteTimestamp = playerVoteSiteHistory.getTimestamp();
                 long voteTimestampAsLong = Long.parseLong(voteTimestamp);
                 Instant start = Instant.ofEpochMilli(voteTimestampAsLong);
                 Instant finish = Instant.now();
-                timeElapsed = Duration.between(start, finish).toMinutes();
+
+            timeElapsed = Duration.between(start, finish).toMinutes();
             }
-        }
         long timeLeft = voteCooldown - timeElapsed;
         if(timeLeft < 0) timeLeft = 0;
 

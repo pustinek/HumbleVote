@@ -2,6 +2,7 @@ package com.pustinek.humblevote.sql;
 
 import com.pustinek.humblevote.Main;
 import com.pustinek.humblevote.utils.Callback;
+import com.pustinek.humblevote.voteStatistics.PlayerVoteSiteHistory;
 import com.pustinek.humblevote.voteStatistics.PlayerVoteStats;
 import com.pustinek.humblevote.voting.QueuedVote;
 import com.pustinek.humblevote.votingRewards.PlayerRewardRecord;
@@ -16,9 +17,10 @@ import java.util.List;
 import java.util.UUID;
 
 public abstract class Database {
-    final String tableVoteStatistics = "voteStatistics";
-    final String tableQueuedVotes = "queuedVotes";
-    final String tableRewards = "voteRewardsHistory";
+    String tableVoteStatistics;
+    String tableQueuedVotes;
+    String tableRewards;
+    String tableVoteSiteHistory;
     Main plugin;
     HikariDataSource dataSource;
 
@@ -35,7 +37,15 @@ public abstract class Database {
 
     abstract String getQueryCreateTableRewards();
 
+    abstract String getTableCreateTableVoteSiteHistory();
+
     public void connect(final Callback<Integer> callback) {
+
+        this.tableRewards = Main.getConfigManager().getDatabaseConfig().getTablePrefix() + "rewards";
+        this.tableQueuedVotes = Main.getConfigManager().getDatabaseConfig().getTablePrefix() + "queued_votes";
+        this.tableVoteStatistics = Main.getConfigManager().getDatabaseConfig().getTablePrefix() + "statistics";
+        this.tableVoteSiteHistory = Main.getConfigManager().getDatabaseConfig().getTablePrefix() + "vote_sites";
+
         new BukkitRunnable() {
 
             @Override
@@ -70,6 +80,11 @@ public abstract class Database {
                     //Create rewards-record table
                     try (Statement s = con.createStatement()) {
                         s.executeUpdate(getQueryCreateTableRewards());
+                    }
+
+                    //Create vote-site-history table
+                    try (Statement s = con.createStatement()) {
+                        s.executeUpdate(getTableCreateTableVoteSiteHistory());
                     }
 
                     try (Statement s = con.createStatement()) {
@@ -130,7 +145,7 @@ public abstract class Database {
     }
 
     private void saveVoteQueues(final List<QueuedVote> playerQueuedVotes, final Callback<Integer> callback) {
-        final String query = "INSERT INTO " + tableQueuedVotes + "(address,serviceName, username, localTimestamp, timestamp) VALUES (?,?,?,?,?)";
+        final String query = "INSERT INTO " + tableQueuedVotes + "(address,serviceName, player_username, local_timestamp, timestamp) VALUES (?,?,?,?,?)";
 
         try (Connection con = dataSource.getConnection();
              PreparedStatement ps = con.prepareStatement(query)
@@ -161,7 +176,7 @@ public abstract class Database {
     }
 
     public void getPlayerQueuedVotes(String username, Callback<ArrayList<QueuedVote>> callback) {
-        final String query = "SELECT * FROM " + tableQueuedVotes + " WHERE username = ?";
+        final String query = "SELECT * FROM " + tableQueuedVotes + " WHERE player_username = ?";
 
         new BukkitRunnable() {
             @Override
@@ -176,10 +191,10 @@ public abstract class Database {
                     ArrayList<QueuedVote> queuedVotes = new ArrayList<>();
 
                     while (rs.next()) {
-                        String username = rs.getString("username");
+                        String username = rs.getString("player_username");
                         String address = rs.getString("address");
                         String serviceName = rs.getString("serviceName");
-                        String localTimestamp = rs.getString("localTimestamp");
+                        String localTimestamp = rs.getString("local_timestamp");
                         String timestamp = rs.getString("timestamp");
 
                         QueuedVote queuedVote = new QueuedVote(address, serviceName, username, timestamp, localTimestamp, false);
@@ -210,7 +225,7 @@ public abstract class Database {
     }
 
     public void deletePlayerQueuedVotes(String userName, ArrayList<QueuedVote> playerQueuedVotes, Callback<Integer> callback) {
-        final String query = "DELETE FROM " + tableQueuedVotes + " WHERE id = ? AND username = ?";
+        final String query = "DELETE FROM " + tableQueuedVotes + " WHERE id = ? AND player_username = ?";
 
         new BukkitRunnable() {
 
@@ -266,11 +281,11 @@ public abstract class Database {
 
                     while (rs.next()) {
                         int id = rs.getInt("id");
-                        String playerId = rs.getString("playerUUID");
-                        String lastUsername = rs.getString("lastUsername");
+                        String playerId = rs.getString("player_uuid");
+                        String lastUsername = rs.getString("player_username");
                         int totalVotes = rs.getInt("total");
                         int points = rs.getInt("points");
-                        String statsJSON = rs.getString("statistics");
+                        String statsJSON = rs.getString("monthly_stats");
 
                         PlayerVoteStats playerVoteStats = new PlayerVoteStats(UUID.fromString(playerId), lastUsername, totalVotes,points, statsJSON);
                         playerVoteStats.setId(id);
@@ -294,7 +309,7 @@ public abstract class Database {
     }
 
     public void getPlayerVoteStatistics(final UUID playerID, Callback<PlayerVoteStats> callback) {
-        final String query = "SELECT * FROM " + tableVoteStatistics + " WHERE playerUUID = ?";
+        final String query = "SELECT * FROM " + tableVoteStatistics + " WHERE player_uuid = ?";
 
 
         new BukkitRunnable() {
@@ -313,11 +328,11 @@ public abstract class Database {
 
                     while (rs.next()) {
                         int id = rs.getInt("id");
-                        String playerId = rs.getString("playerUUID");
-                        String lastUsername = rs.getString("lastUsername");
+                        String playerId = rs.getString("player_uuid");
+                        String lastUsername = rs.getString("player_username");
                         int totalVotes = rs.getInt("total");
                         int points = rs.getInt("points");
-                        String statsJSON = rs.getString("statistics");
+                        String statsJSON = rs.getString("monthly_stats");
 
                         playerVoteStats = new PlayerVoteStats(UUID.fromString(playerId), lastUsername, totalVotes,points, statsJSON);
                         playerVoteStats.setId(id);
@@ -339,8 +354,8 @@ public abstract class Database {
     }
 
     private void savePlayerStatistics(ArrayList<PlayerVoteStats> playerVoteStatsArrayList, Callback<Integer> callback) {
-        final String queryNoId = "REPLACE INTO " + tableVoteStatistics + "(playerUUID, lastUsername, total,points, statistics) VALUES (?,?,?,?,?)";
-        final String queryWithId = "REPLACE INTO " + tableVoteStatistics + "(id, playerUUID, lastUsername, total,points, statistics) VALUES (?,?,?,?,?,?)";
+        final String queryNoId = "REPLACE INTO " + tableVoteStatistics + "(player_uuid, player_username, total,points, monthly_stats) VALUES (?,?,?,?,?)";
+        final String queryWithId = "REPLACE INTO " + tableVoteStatistics + "(id, player_uuid, player_username, total,points, monthly_stats) VALUES (?,?,?,?,?,?)";
 
         try (Connection con = dataSource.getConnection();
              PreparedStatement ps = con.prepareStatement(queryWithId)) {
@@ -354,7 +369,7 @@ public abstract class Database {
                 ps.setString(i + 2, playerVoteStats.getPlayerLastUsername());
                 ps.setInt(i + 3, playerVoteStats.getTotalVoteCount());
                 ps.setInt(i + 4, playerVoteStats.getVotingPoints());
-                ps.setString(i + 5, playerVoteStats.toJson());
+                ps.setString(i + 5, playerVoteStats.getMonthlyStatisticsAsJSON());
                 ps.addBatch();
             }
 
@@ -374,8 +389,8 @@ public abstract class Database {
 
     public void savePlayerStatistics(final PlayerVoteStats playerVoteStats, final Callback<Integer> callback) {
 
-        final String queryNoId = "REPLACE INTO " + tableVoteStatistics + "(playerUUID, lastUsername, total, points, statistics) VALUES (?,?,?,?,?)";
-        final String queryWithId = "REPLACE INTO " + tableVoteStatistics + "(id, playerUUID, lastUsername, total, points, statistics) VALUES (?,?,?,?,?,?)";
+        final String queryNoId = "REPLACE INTO " + tableVoteStatistics + "(player_uuid, player_username, total, points, monthly_stats) VALUES (?,?,?,?,?)";
+        final String queryWithId = "REPLACE INTO " + tableVoteStatistics + "(id, player_uuid, player_username, total, points, monthly_stats) VALUES (?,?,?,?,?,?)";
 
         new BukkitRunnable() {
             @Override
@@ -395,7 +410,7 @@ public abstract class Database {
                     ps.setString(i + 2, playerVoteStats.getPlayerLastUsername());
                     ps.setInt(i + 3, playerVoteStats.getTotalVoteCount());
                     ps.setInt(i + 4, playerVoteStats.getVotingPoints());
-                    ps.setString(i + 5, playerVoteStats.toJson());
+                    ps.setString(i + 5, playerVoteStats.getMonthlyStatisticsAsJSON());
 
                     ps.executeUpdate();
 
@@ -433,7 +448,7 @@ public abstract class Database {
      * @param playerID UUID of the player
      */
     public void getPlayerRewardRecords(UUID playerID, Callback<ArrayList<PlayerRewardRecord>> callback) {
-        final String query = "SELECT * FROM " + tableRewards + " WHERE playerUUID = ?";
+        final String query = "SELECT * FROM " + tableRewards + " WHERE player_uuid = ?";
 
         new BukkitRunnable() {
 
@@ -451,12 +466,12 @@ public abstract class Database {
 
                     while (rs.next()) {
                         int id = rs.getInt("id");
-                        String playerId = rs.getString("playerUUID");
-                        String playerName = rs.getString("playerName");
-                        String rewardID = rs.getString("rewardID");
+                        String playerName = rs.getString("player_username");
+                        String rewardID = rs.getString("reward_id");
                         Instant timestamp = Instant.parse(rs.getString("timestamp"));
 
                         PlayerRewardRecord playerRewardRecord = new PlayerRewardRecord(playerID, playerName, timestamp, rewardID);
+                        playerRewardRecord.setId(id);
                         playerRewardRecords.add(playerRewardRecord);
                     }
 
@@ -482,8 +497,8 @@ public abstract class Database {
      * @param rewardRecord Object representing the reward received by the player
      */
     public void savePlayerVotingReward(PlayerRewardRecord rewardRecord) {
-        final String queryNoId = "REPLACE INTO " + tableRewards + "(playerUUID, playerName, rewardID, timestamp) VALUES (?,?,?,?)";
-        final String queryWithId = "REPLACE INTO " + tableRewards + "(id, playerUUID, playerName, rewardID, timestamp) VALUES (?,?,?,?,?)";
+        final String queryNoId = "REPLACE INTO " + tableRewards + "(player_uuid, player_username, reward_id, timestamp) VALUES (?,?,?,?)";
+        final String queryWithId = "REPLACE INTO " + tableRewards + "(id, player_uuid, player_username, reward_id, timestamp) VALUES (?,?,?,?,?)";
 
         new BukkitRunnable(){
 
@@ -522,11 +537,127 @@ public abstract class Database {
     }
 
 
-    public void disconnect() {
+
+    /*===================================
+     *          VOTE_SITE_HISTORY
+     *===================================*/
+
+    public void savePlayerVoteSiteHistory(PlayerVoteSiteHistory history, boolean async, Callback<Integer> callback) {
+        if (async) {
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    savePlayerVoteSiteHistory(history, callback);
+                }
+            }.runTaskAsynchronously(plugin);
+        } else {
+            savePlayerVoteSiteHistory(history, callback);
+        }
+    }
+
+    private void savePlayerVoteSiteHistory(PlayerVoteSiteHistory history, Callback<Integer> callback) {
+
+        Main.debug("savePlayerVoteSiteHistory::: called");
+        final String queryWithId = "UPDATE " + tableVoteSiteHistory + " SET timestamp=? WHERE id=?";
+        final String queryNoId = "INSERT INTO " + tableVoteSiteHistory + " (player_uuid, player_username, vote_site, timestamp) VALUES (?,?,?,?)";
+
+        new BukkitRunnable() {
+
+            @Override
+            public void run() {
+                try (Connection con = dataSource.getConnection();
+                     PreparedStatement ps = con.prepareStatement(history.hasId() ? queryWithId : queryNoId, Statement.RETURN_GENERATED_KEYS)) {
+
+                    int i = 0;
+                    if (history.hasId()) {
+                        ps.setString(i + 1, history.getTimestamp());
+                        ps.setInt(i + 2, history.getId());
+                    } else {
+                        ps.setString(i + 1, history.getPlayerUUID().toString());
+                        ps.setString(i + 2, history.getPlayerName());
+                        ps.setString(i + 3, history.getVoteSite());
+                        ps.setString(i + 4, history.getTimestamp());
+                    }
+
+                    ps.executeUpdate();
+
+                    if (!history.hasId()) {
+                        int dbID = -1;
+                        ResultSet rs = ps.getGeneratedKeys();
+                        if (rs.next()) {
+                            dbID = rs.getInt(1);
+                        }
+                        history.setId(dbID);
+                    }
+
+                    if (callback != null) {
+                        callback.callSyncResult(1);
+                    }
+                } catch (SQLException ex) {
+                    Main.error(ex);
+                    if (callback != null) {
+                        callback.callSyncError(ex);
+                    }
+                }
+            }
+        }.runTaskAsynchronously(plugin);
+    }
+
+
+    /**
+     * Get player vote site history entries
+     *
+     * @param playerID UUID of the player
+     */
+    public void getPlayerVoteSiteHistories(UUID playerID, Callback<ArrayList<PlayerVoteSiteHistory>> callback) {
+        final String query = "SELECT * FROM " + tableVoteSiteHistory + " WHERE player_uuid = ?";
+
+        new BukkitRunnable() {
+
+            @Override
+            public void run() {
+                try (Connection con = dataSource.getConnection();
+                     PreparedStatement ps = con.prepareStatement(query)) {
+
+                    ps.setString(1, playerID.toString());
+
+                    ResultSet rs = ps.executeQuery();
+
+                    ArrayList<PlayerVoteSiteHistory> playerVoteSiteHistories = new ArrayList<>();
+
+                    while (rs.next()) {
+                        int id = rs.getInt("id");
+                        String playerName = rs.getString("player_username");
+                        String voteSite = rs.getString("vote_site");
+                        String timestamp = rs.getString("timestamp");
+
+                        PlayerVoteSiteHistory playerVoteSiteHistory = new PlayerVoteSiteHistory(id, voteSite, playerName, playerID, timestamp, false);
+                        playerVoteSiteHistory.setId(id);
+                        playerVoteSiteHistories.add(playerVoteSiteHistory);
+                    }
+
+                    if (callback != null) {
+                        callback.callSyncResult(playerVoteSiteHistories);
+                    }
+
+                } catch (SQLException ex) {
+                    if (callback != null) {
+                        callback.callSyncError(ex);
+                    }
+                    Main.error(ex);
+                }
+
+            }
+        }.runTaskAsynchronously(plugin);
+    }
+
+
+    private void disconnect() {
         if (dataSource != null) {
             dataSource.close();
             dataSource = null;
         }
     }
+
 
 }

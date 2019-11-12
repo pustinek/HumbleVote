@@ -25,6 +25,7 @@ public class PlayerListener implements Listener {
         if(Main.getConfigManager().isVoteReminderOnJoin())
             Main.getVoteReminderManager().remindPlayer(player);
 
+
         Main.getVoteStatisticsManager().checkCreatePlayerVoteStatistic(player, new Callback<Integer>(plugin) {
             @Override
             public void onResult(Integer result) {
@@ -39,6 +40,9 @@ public class PlayerListener implements Listener {
                 super.onError(throwable);
             }
         });
+
+        Main.getVoteStatisticsManager().loadPlayerVoteSiteHistoryFromDatabase(event.getPlayer().getUniqueId());
+
         Main.getRewardManager().checkPlayerRewardEligibility(player);
 
     }
@@ -46,6 +50,7 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerQuitListener(PlayerQuitEvent event) {
         Main.getVoteStatisticsManager().savePlayerVoteStatsToDatabase(event.getPlayer().getUniqueId());
+        Main.getVoteStatisticsManager().savePlayerVoteSiteHistoryToDatabase(event.getPlayer().getUniqueId(), true);
     }
 
 }

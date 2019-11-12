@@ -348,13 +348,15 @@ public class RewardManager extends Manager{
 
             Reward reward = new Reward(
                     key,
+                    rewardsCS.getBoolean(key + ".enabled", false),
                     REWARD_TYPE.valueOf(rewardsCS.getString(key + ".type", "ONETIME")),
                     rewardsCS.getBoolean(key + ".claimable", false),
                     requirements,
                     validInnerReward,
                     rewardGUICS.getString("name", "NULL"),
                     rewardGUICS.getStringList("lore"),
-                    Material.getMaterial(Objects.requireNonNull(rewardGUICS.getString("material", "BARRIER")))
+                    Material.getMaterial(Objects.requireNonNull(rewardGUICS.getString("material", "BARRIER"))),
+                    rewardGUICS.getBoolean("display_in_menu", true)
                     );
 
             rewardArrayList.add(reward);

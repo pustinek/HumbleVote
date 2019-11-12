@@ -39,7 +39,7 @@ public class SQLite extends Database {
             }
         }
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl(String.format("jdbc:sqlite:" + dbFile));
+        config.setJdbcUrl("jdbc:sqlite:" + dbFile);
         config.setConnectionTestQuery("SELECT 1");
 
         return new HikariDataSource(config);
@@ -49,11 +49,11 @@ public class SQLite extends Database {
     String getQueryCreateTableVoteStatistics() {
         return "CREATE TABLE IF NOT EXISTS " + tableVoteStatistics + " ("
                 + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                + "playerUUID VARCHAR(36) NOT NULL,"
-                + "lastUsername TINYTEXT NOT NULL,"
+                + "player_uuid VARCHAR(36) NOT NULL,"
+                + "player_username TINYTEXT NOT NULL,"
                 + "total INTEGER NOT NULL,"
                 + "points INTEGER NOT NULL,"
-                + "statistics TEXT NOT NULL)";
+                + "monthly_stats TEXT NOT NULL)";
     }
 
     @Override
@@ -62,8 +62,8 @@ public class SQLite extends Database {
                 + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + "address TINYTEXT NOT NULL,"
                 + "serviceName TINYTEXT NOT NULL,"
-                + "username TINYTEXT NOT NULL,"
-                + "localTimestamp TINYTEXT NOT NULL,"
+                + "player_username TINYTEXT NOT NULL,"
+                + "local_timestamp TINYTEXT NOT NULL,"
                 + "timestamp TINYTEXT NOT NULL)";
     }
 
@@ -71,9 +71,19 @@ public class SQLite extends Database {
     String getQueryCreateTableRewards() {
         return "CREATE TABLE IF NOT EXISTS " + tableRewards + " ("
                 + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                + "playerUUID VARCHAR(36) NOT NULL,"
-                + "playerName TINYTEXT NOT NULL,"
+                + "player_uuid VARCHAR(36) NOT NULL,"
+                + "player_username TINYTEXT NOT NULL,"
                 + "rewardID TINYTEXT NOT NULL,"
+                + "timestamp TINYTEXT NOT NULL)";
+    }
+
+    @Override
+    String getTableCreateTableVoteSiteHistory() {
+        return "CREATE TABLE IF NOT EXISTS " + tableVoteSiteHistory + " ("
+                + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + "player_uuid VARCHAR(36) NOT NULL,"
+                + "player_username TINYTEXT NOT NULL,"
+                + "vote_site TINYTEXT NOT NULL,"
                 + "timestamp TINYTEXT NOT NULL)";
     }
 

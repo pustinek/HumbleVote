@@ -7,6 +7,8 @@ import com.pustinek.humblevote.utils.Manager;
 import com.pustinek.humblevote.voteStatistics.constants.TOP_VOTES_STATS_TYPE;
 import com.pustinek.humblevote.voting.QueuedVote;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.YearMonth;
 import java.util.*;
@@ -16,18 +18,23 @@ import java.util.stream.Collectors;
 public class PlayerVoteStatisticsManager extends Manager {
     private final Main plugin;
     private static ConcurrentHashMap<UUID,PlayerVoteStats> playerVoteStatsConcurrentHashMap = new ConcurrentHashMap<>(32, 0.75f, 2); // PlayerUUID, PlayerVoteStatistics
+    private static ConcurrentHashMap<UUID, ArrayList<PlayerVoteSiteHistory>> playerVoteSiteHistoryConcurrentHashMap = new ConcurrentHashMap<>(32, 0.75f, 2); // PlayerUUID, PlayerVoteSiteHistory
     private static boolean loadedFromDatabase = false;
-    private YearMonth currentYearMonth;
 
 
     public PlayerVoteStatisticsManager(Main plugin) {
         this.plugin = plugin;
-        currentYearMonth = Main.getConfigManager().devEnabled ? YearMonth.of(Main.getConfigManager().devYear, Main.getConfigManager().devMonth) : YearMonth.now();
     }
 
 
-    public YearMonth getCurrentYearMonth() {
-        return currentYearMonth;
+    @Override
+    public void shutdown() {
+        // Shutdown cleanup
+        saveAllPlayerVoteStatsToDatabase(false);
+        playerVoteStatsConcurrentHashMap.clear();
+        playerVoteStatsConcurrentHashMap = null;
+
+        playerVoteSiteHistoryConcurrentHashMap.forEach((x, y) -> savePlayerVoteSiteHistoryToDatabase(x, false));
     }
 
     /**
@@ -49,15 +56,13 @@ public class PlayerVoteStatisticsManager extends Manager {
     }
 
 
+    /**
+     * Get server playerVoteStats list
+     **/
     public List<String> getPlayerVoteStats() {
         return playerVoteStatsConcurrentHashMap.values().stream().map(PlayerVoteStats::getPlayerLastUsername).collect(Collectors.toList());
     }
 
-
-
-    public static boolean isLoadedFromDatabase() {
-        return loadedFromDatabase;
-    }
 
     /**
      * Get player votes statistics for TOP-x players by vote
@@ -67,7 +72,7 @@ public class PlayerVoteStatisticsManager extends Manager {
     public List<PlayerVoteStats> getPlayerVoteStatsByTop(Integer top, TOP_VOTES_STATS_TYPE statsType) {
 
         ArrayList<PlayerVoteStats> arrayList = new ArrayList<>(playerVoteStatsConcurrentHashMap.values());
-        final YearMonth yearMonth = Main.getVoteStatisticsManager().getCurrentYearMonth();
+        final YearMonth yearMonth = Main.getTimeManager().getYearMonth();
         if(statsType.equals(TOP_VOTES_STATS_TYPE.MONTH)){
             arrayList.sort((Comparator.comparing(date -> date.getMonthlyVoteCount(yearMonth), Collections.reverseOrder())));
         }else {
@@ -87,7 +92,7 @@ public class PlayerVoteStatisticsManager extends Manager {
      **/
     public int getServerTotalVotes(TOP_VOTES_STATS_TYPE statsType) {
         if(statsType.equals(TOP_VOTES_STATS_TYPE.MONTH)) {
-           return playerVoteStatsConcurrentHashMap.values().stream().map(pvs -> pvs.getMonthlyVoteCount(Main.getTimeManager().getYearMonth())).reduce(0, Integer::sum);
+            return playerVoteStatsConcurrentHashMap.values().stream().map(pvs -> pvs.getMonthlyVoteCount(Main.getTimeManager().getYearMonth())).reduce(0, Integer::sum);
         }else if(statsType.equals(TOP_VOTES_STATS_TYPE.TOTAL)) {
             return playerVoteStatsConcurrentHashMap.values().stream().map(PlayerVoteStats::getTotalVoteCount).reduce(0, Integer::sum);
         }
@@ -95,21 +100,18 @@ public class PlayerVoteStatisticsManager extends Manager {
     }
 
 
-
     /**
      * Process player vote and determine what the appropriate statistics
      *
      * @param player player object of which to check
      */
-    public void processVoteForStatistics(QueuedVote vote, Player player) {
-        if(vote == null || player == null) {
-            Main.warning("failed to process vote for statistics -- player or QueuedVote is null !");
-            return;
-        }
+    public void processVoteForStatistics(@NotNull QueuedVote vote, @NotNull Player player) {
 
         // Add time of vote to our voteSite statistics, that will be used
         PlayerVoteStats playerVoteStats = playerVoteStatsConcurrentHashMap.get(player.getUniqueId());
-        playerVoteStats.addVoteSiteStatistic(vote.getServiceName(), vote.getTimestamp());
+
+        PlayerVoteSiteHistory playerVoteSiteHistory = new PlayerVoteSiteHistory(-1, vote.getServiceName(), player.getName(), player.getUniqueId(), vote.getTimestamp(), true);
+        addVoteSiteHistory(playerVoteSiteHistory);
 
         // Increment the vote count by one
         playerVoteStats.incrementPlayerVote();
@@ -167,30 +169,30 @@ public class PlayerVoteStatisticsManager extends Manager {
     /**
      * Save all player vote statistics to database
      *
-     * @param async should the operation be executed async ?
+     * @param async should the operation be executed async
      */
     public void saveAllPlayerVoteStatsToDatabase(boolean async) {
 
         ArrayList<PlayerVoteStats> playerVoteStats = new ArrayList<>();
 
-       playerVoteStatsConcurrentHashMap.forEach((key, value) -> {
-           if(value.isNeedsDatabaseSync()) playerVoteStats.add(value);
-       });
+        playerVoteStatsConcurrentHashMap.forEach((key, value) -> {
+            if (value.isNeedsDatabaseSync()) playerVoteStats.add(value);
+        });
 
-       Main.getMainDatabase().savePlayerStatisticsPublic(playerVoteStats,async, new Callback<Integer>(plugin) {
-           @Override
-           public void onResult(Integer result) {
-               if(result > 0)
+        Main.getMainDatabase().savePlayerStatisticsPublic(playerVoteStats, async, new Callback<Integer>(plugin) {
+            @Override
+            public void onResult(Integer result) {
+                if (result > 0)
                     Main.debug(ChatUtils.chatColor("&2Successfully saved " + result + " player vote statistics to Database "));
-               super.onResult(result);
-           }
+                super.onResult(result);
+            }
 
-           @Override
-           public void onError(Throwable throwable) {
-               Main.error(throwable);
-               super.onError(throwable);
-           }
-       });
+            @Override
+            public void onError(Throwable throwable) {
+                Main.error(throwable);
+                super.onError(throwable);
+            }
+        });
     }
 
     /**
@@ -231,5 +233,87 @@ public class PlayerVoteStatisticsManager extends Manager {
             }
         });
     }
+
+
+    /* ====================================
+     *           VOTE-SITE HISTORY
+     * =====================================*/
+
+    /**
+     * add VoteSite history
+     *
+     * @param playerVoteSiteHistory playerVoteSiteHistory
+     */
+    private void addVoteSiteHistory(PlayerVoteSiteHistory playerVoteSiteHistory) {
+
+        ArrayList<PlayerVoteSiteHistory> x = playerVoteSiteHistoryConcurrentHashMap.get(playerVoteSiteHistory.getPlayerUUID());
+        if (x == null) {
+            playerVoteSiteHistoryConcurrentHashMap.computeIfAbsent(playerVoteSiteHistory.getPlayerUUID(), k -> new ArrayList<>()).add(playerVoteSiteHistory);
+            return;
+        }
+
+        ListIterator<PlayerVoteSiteHistory> iterator = x.listIterator();
+        while (iterator.hasNext()) {
+            PlayerVoteSiteHistory historyNext = iterator.next();
+            if (historyNext.getVoteSite().equalsIgnoreCase(playerVoteSiteHistory.getVoteSite())) {
+                int databaseId;
+                if (historyNext.hasId()) {
+                    databaseId = historyNext.getId();
+                    playerVoteSiteHistory.setId(databaseId);
+                }
+                iterator.set(playerVoteSiteHistory);
+                return;
+            }
+        }
+        playerVoteSiteHistoryConcurrentHashMap.computeIfAbsent(playerVoteSiteHistory.getPlayerUUID(), k -> new ArrayList<>()).add(playerVoteSiteHistory);
+    }
+
+
+    /**
+     * get player voteSite history object
+     *
+     * @param playerUUID player UUID
+     * @param voteSite   voteSite service name
+     */
+    @Nullable
+    public PlayerVoteSiteHistory getPlayerVoteSiteHistory(UUID playerUUID, String voteSite) {
+        if (playerVoteSiteHistoryConcurrentHashMap.get(playerUUID) == null) return null;
+        return playerVoteSiteHistoryConcurrentHashMap.get(playerUUID).stream().filter(x -> x.getVoteSite().equalsIgnoreCase(voteSite)).findAny().orElse(null);
+    }
+
+    /**
+     * Save player vote site history to database
+     *
+     * @param playerUUID player UUID
+     */
+    public void savePlayerVoteSiteHistoryToDatabase(UUID playerUUID, boolean async) {
+        ArrayList<PlayerVoteSiteHistory> playerVoteSiteHistories = playerVoteSiteHistoryConcurrentHashMap.get(playerUUID);
+        if (playerVoteSiteHistories == null) return;
+        playerVoteSiteHistories.forEach(playerVoteSiteHistory -> {
+            if (playerVoteSiteHistory.isRequireDBSync()) {
+                Main.getMainDatabase().savePlayerVoteSiteHistory(playerVoteSiteHistory, async, null);
+            }
+        });
+    }
+
+    /**
+     * Load player vote site history from database and save to memory
+     *
+     * @param playerUUID player UUID
+     */
+    public void loadPlayerVoteSiteHistoryFromDatabase(UUID playerUUID) {
+        Main.getMainDatabase().getPlayerVoteSiteHistories(playerUUID, new Callback<ArrayList<PlayerVoteSiteHistory>>(plugin) {
+            @Override
+            public void onResult(ArrayList<PlayerVoteSiteHistory> result) {
+                result.forEach(x -> addVoteSiteHistory(x));
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                super.onError(throwable);
+            }
+        });
+    }
+
 
 }

@@ -1,8 +1,9 @@
 plugin_message_prefix: "[HumbleVote]"
-debug: true
+language: "EN"
+debug: false
 
 votes:
-  # face votes are used mostly for development purposes, and should  be FALSE in production server
+  # fake votes are used mostly for development purposes, and should  be FALSE in production server
   fake_votes: false
   # Number of months back to keep records for players
   monthly_history: 12
@@ -10,10 +11,16 @@ votes:
   # Available options are https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
   timezone_id: "UTC"
 
-  vote_notification:
+  vote_broadcast:
     queued_broadcast: true
     queued_broadcast_wait_time: 200 # Ticks (20 ticks == 1 second)
     broadcast_message: "► {player} has voted {x} times for rewards"
+
+  #Message sent to player when he votes.
+  vote_message:
+    enabled: true
+    message: "You successfully voted on website {vote_site}."
+
   vote_reminder:
       enabled: true
       message: "&8Remember to vote for our server with &6/hvote&8 voting"
