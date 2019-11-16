@@ -1,18 +1,169 @@
 # all possible variables are found  @ https://github.com/pustinek/HumbleVote/wiki
 rewards:
   basic_vote: #This line should be unique (id)
-      enabled: true
-      type: "ONVOTE"
-      claimable: false
-      requirements: []
-      rewards:
-        - "money 3000"
-        - "message {player} You voted so you receive 2000 $"
-      gui:
-        display_in_menu: true
-        name: "basic vote"
-        material: DIAMOND
-        enchanted: false
-        lore:
-          - "Vote on one of the websites to get the rewards"
-          - "get the reward every time you vote"
+    enabled: true
+    type: "ONVOTE"
+    claimable: false
+    requirements: []
+    rewards:
+      - "money 3000"
+      - "message {player} &2You voted so you receive 3000 $"
+    gui:
+      display_in_menu: false
+      name: "&6Basic Vote"
+      material: ENDER_CHEST
+      enchanted: false
+      lore:
+        - "&6◆ &71x Vote Crate"
+        - "&6◆ &71x Diamond"
+        - "&6◆ &71000$"
+        - ""
+        - "&61 &bDaily vote"
+  Monthly_10:
+    enabled: true
+    type: "MONTHLY"
+    claimable: true
+    requirements:
+      - "{votes.month} 10"
+    rewards:
+      - "cmd give {player} diamond 8"
+      - "cmd eco give {player} 25000"
+      - "cmd broadcast &6{player} &7has hit a &f10 &7vote milestone! &6»&b/rewards&6«"
+    gui:
+      display_in_menu: true
+      name: "&610 Vote Milestone"
+      material: CHEST
+      enchanted: false
+      lore:
+        - "&6◆ &78 diamonds"
+        - "&6◆ &725000$"
+        - ""
+        - "&6{votes.month}&7/&6{requirements.month} &7monthly votes"
+  Monthly_25:
+    enabled: true
+    type: "MONTHLY"
+    claimable: true
+    requirements:
+      - "{votes.month} 25"
+    rewards:
+      - "cmd mm i give {player} BookOfFlying_60"
+      - "cmd mp give {player} 2 1"
+      - "cmd broadcast &6{player} &7has hit a &f25 &7vote milestone! &6»&b/rewards&6«"
+    gui:
+      display_in_menu: true
+      name: "&625 Vote Milestone"
+      material: CHEST
+      enchanted: false
+      lore:
+        - "&6◆ &760m Flight Book"
+        - "&6◆ &7Money pouch"
+        - ""
+        - "&6{votes.month}&7/&6{requirements.month} &7monthly votes"
+        - "{requirements.claimable}"
+  Monthly_50:
+    enabled: true
+    type: "MONTHLY"
+    claimable: true
+    requirements:
+      - "{votes.month} 50"
+    rewards:
+      - "cmd give {player} whiteconcretepowder 64"
+      - "cmd mm i give {player} Crafting__crystal_Bloodstone"
+      - "cmd mm i give {player} Crafting__crystal_Alexandrite"
+      - "cmd mm i give {player} Crafting__crystal_ColoShite"
+      - "cmd mm i give {player} Crafting__crystal_Sapphire"
+      - "cmd broadcast &6{player} &7has hit a &f50 &7vote milestone! &6»&b/rewards&6«"
+    gui:
+      display_in_menu: true
+      name: "&650 Vote Milestone"
+      material: CHEST
+      enchanted: false
+      lore:
+        - "&6◆ &764x White concrete powder"
+        - "&6◆ &71x Bloodstone"
+        - "&6◆ &71x Alexandrite"
+        - "&6◆ &71x ColoShite"
+        - "&6◆ &71x Sapphire"
+        - ""
+        - "&6{votes.month}&7/&6{requirements.month} &7monthly votes"
+        - "{requirements.claimable}"
+  Monthly_75:
+    enabled: true
+    type: "MONTHLY"
+    claimable: true
+    requirements:
+      - "{votes.month} 75"
+    rewards:
+      - "cmd mm i give {player} BookOfFlying_180"
+      - "cmd broadcast &6{player} &7has hit a &f75 &7vote milestone! &6»&b/rewards&6«"
+    gui:
+      display_in_menu: true
+      name: "&675 Vote Milestone"
+      material: CHEST
+      enchanted: false
+      lore:
+        - "&6◆ &7180m Flight Book"
+        - ""
+        - "&6{votes.month}&7/&6{requirements.month} &7monthly votes"
+        - "{requirements.claimable}"
+  Monthly_100:
+    enabled: true
+    type: "MONTHLY"
+    claimable: true
+    requirements:
+      - "{votes.month} 100"
+    rewards:
+      - "cmd treasures keys {player} Sluge add 1"
+      - "cmd broadcast &6{player} &7has hit a &f100 &7vote milestone! &6»&b/rewards&6«"
+    gui:
+      display_in_menu: true
+      name: "&6100 Vote Milestone"
+      material: CHEST
+      enchanted: false
+      lore:
+        - "&6◆ &7Doge Crate"
+        - ""
+        - "&6{votes.month}&7/&6{requirements.month} &7monthly votes"
+        - "{requirements.claimable}"
+  Monthly_150:
+    enabled: true
+    type: "MONTHLY"
+    claimable: true
+    requirements:
+      - "{votes.month} 150"
+    rewards:
+      - "cmd soulbound give {player} 1"
+      - "cmd broadcast &6{player} &7has hit a &f150 &7vote milestone! &6»&b/rewards&6«"
+    gui:
+      display_in_menu: true
+      name: "&6150 Vote Milestone"
+      material: CHEST
+      enchanted: false
+      lore:
+        - "&6◆ &7Soulbound"
+        - "&6◆ &75$ Store coupon"
+        - ""
+        - "&6{votes.month}&7/&6{requirements.month} &7monthly votes"
+        - "{requirements.claimable}"
+  Server_1000:
+    enabled: true
+    type: "MONTHLY"
+    claimable: true
+    requirements:
+      - "{votes.month} 30"
+      - "{votes.server.month} 1000"
+    rewards:
+      - "cmd soulbound give {player} 1"
+      - "cmd broadcast &6{player} &7has hit a &f150 &7vote milestone! &6»&b/rewards&6«"
+    gui:
+      display_in_menu: true
+      name: "&61000 Vote Milestone"
+      material: BOOKSHELF
+      enchanted: false
+      lore:
+        - "&6◆ &7180m Flight Book"
+        - "&6◆ &7100% jobs exp boost"
+        - ""
+        - "&6{votes.month}&7/&6{requirements.month} &7monthly votes"
+        - "&6{votes.server.month}&7/&6{requirements.server.month} &7server votes"
+        - "{requirements.claimable}"

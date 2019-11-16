@@ -26,7 +26,6 @@ public class RewardsGUI implements InventoryProvider {
                 if(e.isLeftClick()) {
                     final boolean b = Main.getRewardManager().playerClaimReward(player, reward.getId());
                     if(b) {
-                        player.sendMessage("You successfully claimed the reward.");
                         GUIManager.displayRewardsGUI().open(player);
                     }
                 }

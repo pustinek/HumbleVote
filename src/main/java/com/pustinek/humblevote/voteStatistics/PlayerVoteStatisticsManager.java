@@ -34,7 +34,12 @@ public class PlayerVoteStatisticsManager extends Manager {
         playerVoteStatsConcurrentHashMap.clear();
         playerVoteStatsConcurrentHashMap = null;
 
-        playerVoteSiteHistoryConcurrentHashMap.forEach((x, y) -> savePlayerVoteSiteHistoryToDatabase(x, false));
+        ArrayList<PlayerVoteSiteHistory> playerVoteSiteHistories = new ArrayList<>();
+        playerVoteSiteHistoryConcurrentHashMap.values().forEach(playerVoteSiteHistories::addAll);
+
+        Main.getMainDatabase().savePlayerVoteSiteHistory(playerVoteSiteHistories, null);
+
+        //playerVoteSiteHistoryConcurrentHashMap.forEach((x, y) -> savePlayerVoteSiteHistoryToDatabase(x, false));
     }
 
     /**
@@ -110,7 +115,7 @@ public class PlayerVoteStatisticsManager extends Manager {
         // Add time of vote to our voteSite statistics, that will be used
         PlayerVoteStats playerVoteStats = playerVoteStatsConcurrentHashMap.get(player.getUniqueId());
 
-        PlayerVoteSiteHistory playerVoteSiteHistory = new PlayerVoteSiteHistory(-1, vote.getServiceName(), player.getName(), player.getUniqueId(), vote.getTimestamp(), true);
+        PlayerVoteSiteHistory playerVoteSiteHistory = new PlayerVoteSiteHistory(-1, vote.getServiceName(), player.getName(), player.getUniqueId(), vote.getLocalTimestamp(), true);
         addVoteSiteHistory(playerVoteSiteHistory);
 
         // Increment the vote count by one

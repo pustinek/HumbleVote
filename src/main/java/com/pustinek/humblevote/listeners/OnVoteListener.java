@@ -11,9 +11,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-
 public class OnVoteListener implements Listener {
 
     private final Main plugin;
@@ -52,8 +49,10 @@ public class OnVoteListener implements Listener {
                     return;
                 }
 
-                LocalDateTime localTime = LocalDateTime.now();
-                long localEpoch = localTime.toEpochSecond(ZoneOffset.UTC);
+        //LocalDateTime localTime = LocalDateTime.now();
+        //long localEpoch = localTime.toEpochSecond(ZoneOffset.UTC);
+        long localEpoch = Main.getTimeManager().getTimeInstant().getEpochSecond();
+
 
                 QueuedVote queuedVote = new QueuedVote(
                     vote.getAddress(),

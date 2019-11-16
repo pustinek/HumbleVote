@@ -42,8 +42,8 @@ public class VoteSitesManager extends Manager {
         //create file if it doesn't exist
         if(!customConfigFile.exists()) {
             customConfigFile.getParentFile().mkdirs();
+            plugin.saveResource("voteSites.yml", false);
         }
-        plugin.saveResource("voteSites.yml", false);
         customConfig= new YamlConfiguration();
         try {
             customConfig.load(customConfigFile);

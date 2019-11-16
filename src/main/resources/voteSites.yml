@@ -13,7 +13,7 @@ vote_sites:
     # vote_url will be displayed when you click on the icon in GUI
     vote_url: "https://server.net/vote1"
     vote_cooldown: 1440 #cooldown in minutes (1440min == 24h)
-    service_site: "mc-wi"
+    service_site: dogecraft-wiki-1
     gui:
       name: Vote_1
       enabled_icon: GREEN_STAINED_GLASS_PANE
@@ -27,6 +27,45 @@ vote_sites:
     vote_url: "https://server.net/vote2"
     vote_cooldown: 1440 #cooldown in minutes (1440min == 24h)
     service_site: dogecraft-wiki-2
+    gui:
+      name: Vote_1
+      enabled_icon: GREEN_STAINED_GLASS_PANE
+      disabled_icon: RED_STAINED_GLASS_PANE
+      lore:
+        - "vote here one"
+        - "cooldown: {cooldown}"
+  vote_3:
+    enabled: true
+    # vote_url will be displayed when you click on the icon in GUI
+    vote_url: "https://server.net/vote2"
+    vote_cooldown: 1440 #cooldown in minutes (1440min == 24h)
+    service_site: dogecraft-wiki-3
+    gui:
+      name: Vote_1
+      enabled_icon: GREEN_STAINED_GLASS_PANE
+      disabled_icon: RED_STAINED_GLASS_PANE
+      lore:
+        - "vote here one"
+        - "cooldown: {cooldown}"
+  vote_4:
+    enabled: true
+    # vote_url will be displayed when you click on the icon in GUI
+    vote_url: "https://server.net/vote2"
+    vote_cooldown: 1440 #cooldown in minutes (1440min == 24h)
+    service_site: dogecraft-wiki-4
+    gui:
+      name: Vote_1
+      enabled_icon: GREEN_STAINED_GLASS_PANE
+      disabled_icon: RED_STAINED_GLASS_PANE
+      lore:
+        - "vote here one"
+        - "cooldown: {cooldown}"
+  vote_5:
+    enabled: true
+    # vote_url will be displayed when you click on the icon in GUI
+    vote_url: "https://server.net/vote2"
+    vote_cooldown: 1440 #cooldown in minutes (1440min == 24h)
+    service_site: dogecraft-wiki-5
     gui:
       name: Vote_1
       enabled_icon: GREEN_STAINED_GLASS_PANE

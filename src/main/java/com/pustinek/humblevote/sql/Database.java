@@ -11,10 +11,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.sql.*;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public abstract class Database {
     String tableVoteStatistics;
@@ -145,7 +142,7 @@ public abstract class Database {
     }
 
     private void saveVoteQueues(final List<QueuedVote> playerQueuedVotes, final Callback<Integer> callback) {
-        final String query = "INSERT INTO " + tableQueuedVotes + "(address,serviceName, player_username, local_timestamp, timestamp) VALUES (?,?,?,?,?)";
+        final String query = "INSERT INTO " + tableQueuedVotes + "(address,service_name, player_username, local_timestamp, timestamp) VALUES (?,?,?,?,?)";
 
         try (Connection con = dataSource.getConnection();
              PreparedStatement ps = con.prepareStatement(query)
@@ -193,7 +190,7 @@ public abstract class Database {
                     while (rs.next()) {
                         String username = rs.getString("player_username");
                         String address = rs.getString("address");
-                        String serviceName = rs.getString("serviceName");
+                        String serviceName = rs.getString("service_name");
                         String localTimestamp = rs.getString("local_timestamp");
                         String timestamp = rs.getString("timestamp");
 
@@ -557,14 +554,9 @@ public abstract class Database {
 
     private void savePlayerVoteSiteHistory(PlayerVoteSiteHistory history, Callback<Integer> callback) {
 
-        Main.debug("savePlayerVoteSiteHistory::: called");
         final String queryWithId = "UPDATE " + tableVoteSiteHistory + " SET timestamp=? WHERE id=?";
         final String queryNoId = "INSERT INTO " + tableVoteSiteHistory + " (player_uuid, player_username, vote_site, timestamp) VALUES (?,?,?,?)";
 
-        new BukkitRunnable() {
-
-            @Override
-            public void run() {
                 try (Connection con = dataSource.getConnection();
                      PreparedStatement ps = con.prepareStatement(history.hasId() ? queryWithId : queryNoId, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -599,9 +591,56 @@ public abstract class Database {
                         callback.callSyncError(ex);
                     }
                 }
-            }
-        }.runTaskAsynchronously(plugin);
     }
+
+
+    public void savePlayerVoteSiteHistory(ArrayList<PlayerVoteSiteHistory> histories, Callback<int[]> callback) {
+
+        Main.debug("savePlayerVoteSiteHistory called with array size -> :::" + histories.size());
+        final String updateQuery = "UPDATE " + tableVoteSiteHistory + " SET timestamp=? WHERE id=?";
+        final String insertQuery = "INSERT INTO " + tableVoteSiteHistory + " (player_uuid, player_username, vote_site, timestamp) VALUES (?,?,?,?)";
+
+        try (Connection con = dataSource.getConnection();
+             PreparedStatement updatePs = con.prepareStatement(updateQuery, Statement.RETURN_GENERATED_KEYS);
+             PreparedStatement insertPs = con.prepareStatement(insertQuery, Statement.RETURN_GENERATED_KEYS)
+        ) {
+
+
+            for (PlayerVoteSiteHistory history : histories) {
+                if (history.hasId()) {
+                    updatePs.setString(1, history.getTimestamp());
+                    updatePs.setInt(2, history.getId());
+                    updatePs.addBatch();
+
+                } else {
+                    insertPs.setString(1, history.getPlayerUUID().toString());
+                    insertPs.setString(2, history.getPlayerName());
+                    insertPs.setString(3, history.getVoteSite());
+                    insertPs.setString(4, history.getTimestamp());
+                    insertPs.addBatch();
+                }
+            }
+
+            updatePs.executeBatch();
+            int[] x = insertPs.executeBatch();
+            Main.debug("Insert database results :::" + Arrays.toString(x));
+            if (callback != null) {
+                callback.callSyncResult(x);
+            }
+
+        } catch (SQLException ex) {
+            Main.error(ex);
+            if (callback != null) {
+                callback.callSyncError(ex);
+            }
+        }
+
+
+    }
+
+
+
+
 
 
     /**

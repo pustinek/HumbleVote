@@ -39,8 +39,8 @@ rewards-successfullyReceived: "[green]You received the reward %0% from voting"
 rewards-requirementsNotMeet: "[red]You don't meet the requirements for this reward !"
 
 # Messages used in rewards.yml file under GUI section -> {requirements.claimable}
-rewards-placeholder-claim-alreadyClaimed: "[dark_blue]Already claimed"
-rewards-placeholder-claim-readyToBeClaimed: "[green]Reward Can be claimed"
+rewards-placeholder-claim-alreadyClaimed: "[gray]Already claimed"
+rewards-placeholder-claim-readyToBeClaimed: "[green]Reward can be claimed"
 rewards-placeholder-claim-requirementsNotMeet: "[red]Requirements not meet"
 
 

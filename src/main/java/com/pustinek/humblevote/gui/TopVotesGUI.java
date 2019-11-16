@@ -10,6 +10,7 @@ import fr.minuskube.inv.content.InventoryContents;
 import fr.minuskube.inv.content.InventoryProvider;
 import fr.minuskube.inv.content.Pagination;
 import fr.minuskube.inv.content.SlotIterator;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -52,6 +53,11 @@ public class TopVotesGUI implements InventoryProvider {
                         "monthly: " + playerVoteStats.get(i).getMonthlyVoteCount(Main.getTimeManager().getYearMonth())));
                 skull.setItemMeta(testMeta);
                 skull.setAmount(i + 1);
+                Player topPlayer = Bukkit.getPlayer(playerVoteStats.get(i).getPlayerUUID());
+                if (topPlayer != null && topPlayer.isOnline()) {
+                    testMeta.setOwningPlayer(player);
+                }
+
             }
             items[i] = ClickableItem.empty(skull);
         }

@@ -76,6 +76,7 @@ public class VoteSite {
         if (playerVoteSiteHistory != null) {
             String voteTimestamp = playerVoteSiteHistory.getTimestamp();
             long voteTimestampAsLong = Long.parseLong(voteTimestamp);
+
             Instant start = Instant.ofEpochSecond(voteTimestampAsLong);
             Instant finish = Instant.now();
 

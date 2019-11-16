@@ -61,7 +61,7 @@ public class SQLite extends Database {
         return "CREATE TABLE IF NOT EXISTS " + tableQueuedVotes + " ("
                 + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + "address TINYTEXT NOT NULL,"
-                + "serviceName TINYTEXT NOT NULL,"
+                + "service_name TINYTEXT NOT NULL,"
                 + "player_username TINYTEXT NOT NULL,"
                 + "local_timestamp TINYTEXT NOT NULL,"
                 + "timestamp TINYTEXT NOT NULL)";
@@ -73,7 +73,7 @@ public class SQLite extends Database {
                 + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + "player_uuid VARCHAR(36) NOT NULL,"
                 + "player_username TINYTEXT NOT NULL,"
-                + "rewardID TINYTEXT NOT NULL,"
+                + "reward_id TINYTEXT NOT NULL,"
                 + "timestamp TINYTEXT NOT NULL)";
     }
 
