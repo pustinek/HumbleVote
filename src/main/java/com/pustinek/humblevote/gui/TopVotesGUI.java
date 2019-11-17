@@ -57,7 +57,7 @@ public class TopVotesGUI implements InventoryProvider {
                 skull.setAmount(i + 1);
                 Player topPlayer = Bukkit.getPlayer(playerVoteStats.get(i).getPlayerUUID());
                 if (topPlayer != null && topPlayer.isOnline()) {
-                    testMeta.setOwningPlayer(player);
+                    testMeta.setOwningPlayer(topPlayer);
                 }
                 skull.setItemMeta(testMeta);
             }
