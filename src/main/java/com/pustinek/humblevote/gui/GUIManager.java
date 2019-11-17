@@ -5,6 +5,8 @@ import com.pustinek.humblevote.utils.Manager;
 import com.pustinek.humblevote.voteStatistics.constants.TOP_VOTES_STATS_TYPE;
 import fr.minuskube.inv.SmartInventory;
 
+import java.time.YearMonth;
+
 public class GUIManager extends Manager {
 
     private final Main plugin;
@@ -23,13 +25,13 @@ public class GUIManager extends Manager {
                 .build();
     }
 
-    public static SmartInventory displayTopVotersGUI(TOP_VOTES_STATS_TYPE voteStats) {
+    public static SmartInventory displayTopVotersGUI(TOP_VOTES_STATS_TYPE voteStats, YearMonth yearMonth) {
         return SmartInventory.builder()
                 .manager(Main.getInventoryManager())
-                .provider(new TopVotesGUI(voteStats))
+                .provider(new TopVotesGUI(voteStats, yearMonth))
                 .size(5, 9)
                 .title(
-                        voteStats.equals(TOP_VOTES_STATS_TYPE.MONTH) ?  "Top voters - Monthly" : "Top voters - Total"
+                        voteStats.equals(TOP_VOTES_STATS_TYPE.MONTH) ? "Monthly top voters (" + yearMonth.toString() + ")" : "Total top voters"
                 )
                 .build();
     }

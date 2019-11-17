@@ -73,11 +73,13 @@ public class PlayerVoteStatisticsManager extends Manager {
      * Get player votes statistics for TOP-x players by vote
      *
      * @param top number of top voting players to get
+     * @param statsType type of statistics to get (Monthly | Total)
+     * @param yearMonth year-month of the statistics to get
      **/
-    public List<PlayerVoteStats> getPlayerVoteStatsByTop(Integer top, TOP_VOTES_STATS_TYPE statsType) {
+    public List<PlayerVoteStats> getPlayerVoteStatsByTop(final int top, final TOP_VOTES_STATS_TYPE statsType, final YearMonth yearMonth) {
 
         ArrayList<PlayerVoteStats> arrayList = new ArrayList<>(playerVoteStatsConcurrentHashMap.values());
-        final YearMonth yearMonth = Main.getTimeManager().getYearMonth();
+
         if(statsType.equals(TOP_VOTES_STATS_TYPE.MONTH)){
             arrayList.sort((Comparator.comparing(date -> date.getMonthlyVoteCount(yearMonth), Collections.reverseOrder())));
         }else {
@@ -89,6 +91,18 @@ public class PlayerVoteStatisticsManager extends Manager {
         return arrayList;
 
     }
+
+    /**
+     * Get player votes statistics for TOP-x players by vote for current year-month
+     *
+     * @param top       number of top voting players to get
+     * @param statsType type of statistics to get (Monthly | Total)
+     **/
+    public List<PlayerVoteStats> getPlayerVoteStatsByTop(int top, TOP_VOTES_STATS_TYPE statsType) {
+        return getPlayerVoteStatsByTop(top, statsType, Main.getTimeManager().getYearMonth());
+    }
+
+
 
     /**
      * Get the total votes of all the players on the server (total | monthly)

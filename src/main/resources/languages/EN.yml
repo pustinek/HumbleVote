@@ -16,9 +16,6 @@ test:
   - "this is great"
   - "my good"
 
-
-
-
 cmd-notValid: "That command is not valid, use '/groupchat help' for info."
 cmd-onlyByPlayer: "This command can only be run by a player !"
 
@@ -46,7 +43,8 @@ rewards-placeholder-claim-requirementsNotMeet: "[red]Requirements not meet"
 
 permission-insufficient: "[red]Insufficient permissions to use this command"
 
-top-help: "/hvote top [monthly]"
+top-help: "/hvote top [year-month] (ex. 2019-06)"
+top-monthYearFailParse: "[red] Failed to parse year-month => [reset]`%0%`."
 
 reload-success: "[green]You successfully reloaded the config file."
 
@@ -55,7 +53,6 @@ manage-successAdd: "[green] You successfully added [reset]%0%[green] %1% to %2% 
 manage-successSubtract: "[green] You successfully subtracted [reset]%0%[green] %1% from %2% (%3% -> %4%)."
 manage-successSet: "[green] You successfully set [reset]%0%[green] %1% for %2% (%3% -> %4%)"
 manage-noPlayerStats: "[red]Couldn't find any voting statistics for player [reset]%0%."
-
 
 stats-help: "► [dark_purple]/hvote stats [player | server] [player_name]"
 stats-noStats: "[red]Couldn't find any voting statistics for player &f%0%."
