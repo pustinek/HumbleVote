@@ -34,7 +34,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
 
-
 public final class Main extends JavaPlugin {
     // Private static variables
     private static Logger logger;
@@ -54,28 +53,10 @@ public final class Main extends JavaPlugin {
     private static VoteNotificationManager notificationManager = null;
     private static TimeManager timeManager = null;
     private static VoteReminderManager voteReminderManager = null;
+    private static LanguageManager languageManager = null;
 
     private static Database databaseMySQL = null;
     private static Database databaseSQLite = null;
-    // General variables:
-
-
-    public static RewardManager getRewardManager() {
-        if (rewardManager == null) {
-            rewardManager = new RewardManager(plugin);
-            managers.add(rewardManager);
-        }
-        return rewardManager;
-    }
-
-    /**
-     * Print a warning to the console.
-     * @param message The message to print
-     */
-    public static void warning(String message) {
-        logger.warning(message);
-    }
-
 
     public static CommandManager getCommandManager() {
         return commandManager;
@@ -87,132 +68,6 @@ public final class Main extends JavaPlugin {
 
     public static Database getDatabaseMySQL() {
         return databaseMySQL;
-    }
-
-    public static Database getDatabaseSQLite() {
-        return databaseSQLite;
-    }
-
-    public static InventoryManager getInventoryManager() {
-        return inventoryManager;
-    }
-
-    public static VoteSitesManager getVoteSitesManager() {
-
-        if(voteSitesManager == null) {
-            voteSitesManager = new VoteSitesManager(plugin);
-            managers.add(voteSitesManager);
-        }
-        return voteSitesManager;
-    }
-    public static PlayerVoteStatisticsManager getVoteStatisticsManager() {
-        if(voteStatisticsManager == null) {
-            voteStatisticsManager = new PlayerVoteStatisticsManager(plugin);
-            managers.add(voteStatisticsManager);
-        }
-        return voteStatisticsManager;
-    }
-
-    public static Database getMainDatabase() {
-        if(configManager.getDatabaseConfig().getDriver().equalsIgnoreCase("MySQL")) {
-            return databaseMySQL;
-        }
-        return databaseSQLite;
-    }
-
-    public static VoteManager getVoteManager() {
-        if(voteManager == null) {
-            voteManager = new VoteManager(plugin);
-            managers.add(voteManager);
-        }
-        return voteManager;
-    }
-    public static TimeManager getTimeManager() {
-        if(timeManager == null) {
-            timeManager = new TimeManager(plugin);
-            managers.add(timeManager);
-        }
-        return timeManager;
-    }
-
-    public static VoteNotificationManager getNotificationManager() {
-        if(notificationManager == null) {
-            notificationManager = new VoteNotificationManager(plugin);
-            managers.add(notificationManager);
-        }
-        return notificationManager;
-    }
-
-    public static VoteReminderManager getVoteReminderManager() {
-        if(voteReminderManager == null) {
-            voteReminderManager = new VoteReminderManager(plugin);
-            managers.add(voteReminderManager);
-        }
-        return voteReminderManager;
-    }
-
-    /**
-     * Print a debug msg to the console.
-     *
-     * @param message The message to print
-     */
-    public static void debug(String message) {
-        if (ConfigManager.isDebug)
-            logger.info(message);
-    }
-
-    public static Economy getEconomy() {
-        return econ;
-    }
-
-    private void registerListeners() {
-        PluginManager pm = Bukkit.getPluginManager();
-        pm.registerEvents(new OnVoteListener(this), this);
-        pm.registerEvents(new PlayerListener(this), this);
-    }
-
-    private void loadManagers() {
-
-        if(commandManager == null) {
-            commandManager = new CommandManager(this);
-            managers.add(commandManager);
-        }
-        if(voteManager == null) {
-            voteManager = new VoteManager(this);
-            managers.add(voteManager);
-        }
-        if(rewardManager == null) {
-            rewardManager = new RewardManager(this);
-            managers.add(rewardManager);
-        }
-        if(voteSitesManager == null) {
-            voteSitesManager = new VoteSitesManager(this);
-            managers.add(voteSitesManager);
-        }
-        if(voteSitesManager == null) {
-            voteStatisticsManager = new PlayerVoteStatisticsManager(this);
-            managers.add(voteStatisticsManager);
-        }
-        if(notificationManager == null) {
-            notificationManager = new VoteNotificationManager(this);
-            managers.add(notificationManager);
-        }
-        if(timeManager == null) {
-            timeManager = new TimeManager(this);
-            managers.add(timeManager);
-        }
-        if(voteReminderManager == null) {
-            voteReminderManager = new VoteReminderManager(this);
-            managers.add(voteReminderManager);
-        }
-
-        inventoryManager = new InventoryManager(this);
-        inventoryManager.init();
-    }
-
-
-    public static void reloadManagers() {
-        managers.forEach(Manager::reload);
     }
 
     private void initDatabases() {
@@ -259,7 +114,6 @@ public final class Main extends JavaPlugin {
 
     }
 
-
     private boolean setupEconomy() {
         if (getServer().getPluginManager().getPlugin("Vault") == null) {
             return false;
@@ -271,6 +125,148 @@ public final class Main extends JavaPlugin {
         econ = rsp.getProvider();
         return true;
     }
+
+    public static Database getDatabaseSQLite() {
+        return databaseSQLite;
+    }
+
+    public static InventoryManager getInventoryManager() {
+        return inventoryManager;
+    }
+
+    public static VoteSitesManager getVoteSitesManager() {
+
+        if (voteSitesManager == null) {
+            voteSitesManager = new VoteSitesManager(plugin);
+            managers.add(voteSitesManager);
+        }
+        return voteSitesManager;
+    }
+
+    public static PlayerVoteStatisticsManager getVoteStatisticsManager() {
+        if (voteStatisticsManager == null) {
+            voteStatisticsManager = new PlayerVoteStatisticsManager(plugin);
+            managers.add(voteStatisticsManager);
+        }
+        return voteStatisticsManager;
+    }
+
+    public static VoteManager getVoteManager() {
+        if (voteManager == null) {
+            voteManager = new VoteManager(plugin);
+            managers.add(voteManager);
+        }
+        return voteManager;
+    }
+
+    public static TimeManager getTimeManager() {
+        if (timeManager == null) {
+            timeManager = new TimeManager(plugin);
+            managers.add(timeManager);
+        }
+        return timeManager;
+    }
+
+    public static VoteNotificationManager getNotificationManager() {
+        if (notificationManager == null) {
+            notificationManager = new VoteNotificationManager(plugin);
+            managers.add(notificationManager);
+        }
+        return notificationManager;
+    }
+
+    public static VoteReminderManager getVoteReminderManager() {
+        if (voteReminderManager == null) {
+            voteReminderManager = new VoteReminderManager(plugin);
+            managers.add(voteReminderManager);
+        }
+        return voteReminderManager;
+    }
+
+    public static RewardManager getRewardManager() {
+        if (rewardManager == null) {
+            rewardManager = new RewardManager(plugin);
+            managers.add(rewardManager);
+        }
+        return rewardManager;
+    }
+
+    public static Database getMainDatabase() {
+        if (configManager.getDatabaseConfig().getDriver().equalsIgnoreCase("MySQL")) {
+            return databaseMySQL;
+        }
+        return databaseSQLite;
+    }
+
+    public static Economy getEconomy() {
+        return econ;
+    }
+
+    /**
+     * Print a debug msg to the console.
+     *
+     * @param message The message to print
+     */
+    public static void debug(String message) {
+        if (ConfigManager.isDebug)
+            logger.info(message);
+    }
+
+    /**
+     * Print a warning to the console.
+     *
+     * @param message The message to print
+     */
+    public static void warning(String message) {
+        logger.warning(message);
+    }
+
+    public static void reloadManagers() {
+        managers.forEach(Manager::reload);
+    }
+
+    @Override
+    public void onEnable() {
+        // load logger
+        logger = this.getLogger();
+        plugin = this;
+        // Plugin startup logic
+
+        boolean econIsReady = setupEconomy();
+        if (econIsReady) {
+            logger.info("Successfully hoked into vault - economy ");
+        }
+
+        // Load config manager first ->
+        if (configManager == null) {
+            configManager = new ConfigManager(this);
+            managers.add(configManager);
+        }
+
+        initDatabases();
+        loadManagers();
+        registerListeners();
+
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new Placeholders(this).register();
+        }
+
+        languageManager = new LanguageManager(
+                this,                                  // The plugin (used to get the languages bundled in the jar file)
+                "languages",                           // Folder where the languages are stored
+                getConfig().getString("language", "EN"),     // The language to use indicated by the plugin user
+                "EN",                                  // The default language, expected to be shipped with the plugin and should be complete, fills in gaps in the user-selected language
+                Collections.singletonList(getConfigManager().getPluginMessagePrefix()) // Chat prefix to use with Message#prefix(), could of course come from the config file
+        );
+
+    }
+
+    @Override
+    public void onDisable() {
+        HandlerList.unregisterAll();
+        managers.forEach(Manager::shutdown);
+    }
+
 
     /**
      * Send a message to a target without a prefix.
@@ -303,47 +299,49 @@ public final class Main extends JavaPlugin {
         logger.severe(StringUtils.join(message, " "));
     }
 
-    @Override
-    public void onEnable() {
-        // load logger
-        logger = this.getLogger();
-        plugin = this;
-        // Plugin startup logic
-
-        boolean econIsReady = setupEconomy();
-        if (econIsReady) {
-            logger.info("Successfully hoked into vault - economy ");
-        }
-
-        // Load config manager first ->
-        if (configManager == null) {
-            configManager = new ConfigManager(this);
-            managers.add(configManager);
-        }
-
-
-        initDatabases();
-        loadManagers();
-        registerListeners();
-
-        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
-            new Placeholders(this).register();
-        }
-
-        new LanguageManager(
-                this,                                  // The plugin (used to get the languages bundled in the jar file)
-                "languages",                           // Folder where the languages are stored
-                getConfig().getString("language", "EN"),     // The language to use indicated by the plugin user
-                "EN",                                  // The default language, expected to be shipped with the plugin and should be complete, fills in gaps in the user-selected language
-                Collections.singletonList(getConfigManager().getPluginMessagePrefix()) // Chat prefix to use with Message#prefix(), could of course come from the config file
-        );
+    private void registerListeners() {
+        PluginManager pm = Bukkit.getPluginManager();
+        pm.registerEvents(new OnVoteListener(this), this);
+        pm.registerEvents(new PlayerListener(this), this);
     }
 
-    @Override
-    public void onDisable() {
-        // Plugin shutdown logic
-        HandlerList.unregisterAll();
-        managers.forEach(Manager::shutdown);
+    private void loadManagers() {
+
+        if (commandManager == null) {
+            commandManager = new CommandManager(this);
+            managers.add(commandManager);
+        }
+        if (voteManager == null) {
+            voteManager = new VoteManager(this);
+            managers.add(voteManager);
+        }
+        if (rewardManager == null) {
+            rewardManager = new RewardManager(this);
+            managers.add(rewardManager);
+        }
+        if (voteSitesManager == null) {
+            voteSitesManager = new VoteSitesManager(this);
+            managers.add(voteSitesManager);
+        }
+        if (voteSitesManager == null) {
+            voteStatisticsManager = new PlayerVoteStatisticsManager(this);
+            managers.add(voteStatisticsManager);
+        }
+        if (notificationManager == null) {
+            notificationManager = new VoteNotificationManager(this);
+            managers.add(notificationManager);
+        }
+        if (timeManager == null) {
+            timeManager = new TimeManager(this);
+            managers.add(timeManager);
+        }
+        if (voteReminderManager == null) {
+            voteReminderManager = new VoteReminderManager(this);
+            managers.add(voteReminderManager);
+        }
+
+        inventoryManager = new InventoryManager(this);
+        inventoryManager.init();
     }
 
 }

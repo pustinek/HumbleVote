@@ -94,9 +94,6 @@ public class TopVotesGUI implements InventoryProvider {
                 GUIItemGenerator.itemGenerator("&2next page", Material.ARROW, Collections.singletonList(""))
                 ,
                 e -> GUIManager.displayTopVotersGUI(voteStats, yearMonth).open(player, pagination.next().getPage())));
-
-
-
     }
 
     @Override
