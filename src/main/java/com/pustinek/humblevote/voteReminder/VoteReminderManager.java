@@ -12,6 +12,7 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.function.Predicate;
 
 public class VoteReminderManager extends Manager {
 
@@ -53,10 +54,10 @@ public class VoteReminderManager extends Manager {
         boolean votedOnAllSites = false;
         if(configManager.isDisableOnAllVotes()) {
             ArrayList<VoteSite> voteSites = Main.getVoteSitesManager().getVoteSites();
-
-            votedOnAllSites = voteSites.stream().noneMatch(vs ->
-                    (Utils.getPlayerVoteSiteCooldown(player, vs) == 0 && !vs.getService_site().equalsIgnoreCase("null")));
+            Predicate<VoteSite> p1 = voteSite -> Utils.getPlayerVoteSiteCooldown(player, voteSite) == 0 && !voteSite.getService_site().equalsIgnoreCase("null");
+            votedOnAllSites = voteSites.stream().noneMatch(p1);
         }
+
 
         if(!votedOnAllSites)
             player.sendMessage(ChatUtils.chatColor(configManager.getVoteReminderMessage()));

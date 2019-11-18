@@ -3,14 +3,11 @@ package com.pustinek.humblevote.voteSites;
 import com.pustinek.humblevote.Main;
 import com.pustinek.humblevote.utils.ChatUtils;
 import com.pustinek.humblevote.utils.Utils;
-import com.pustinek.humblevote.voteStatistics.PlayerVoteSiteHistory;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -68,23 +65,8 @@ public class VoteSite {
         }
         ItemStack itemStack;
 
-        long timeElapsed = 99999;
-        long voteCooldown = getVoteCooldown();
-        PlayerVoteSiteHistory playerVoteSiteHistory = Main.getVoteStatisticsManager().getPlayerVoteSiteHistory(player.getUniqueId(), service_site);
+        long timeLeft = Utils.getPlayerVoteSiteCooldown(player, this);
 
-
-        if (playerVoteSiteHistory != null) {
-            String voteTimestamp = playerVoteSiteHistory.getTimestamp();
-            long voteTimestampAsLong = Long.parseLong(voteTimestamp);
-
-            Instant start = Instant.ofEpochSecond(voteTimestampAsLong);
-            Instant finish = Instant.now();
-
-            timeElapsed = Duration.between(start, finish).toMinutes();
-        }
-
-        long timeLeft = voteCooldown - timeElapsed;
-        if (timeLeft < 0) timeLeft = 0;
         if (timeLeft > 0) {
             itemStack = new ItemStack(disabledMaterial);
         }else {

@@ -65,17 +65,20 @@ public class Utils {
         long timeElapsed = 99999;
         long voteCooldown = voteSite.getVoteCooldown();
         PlayerVoteSiteHistory playerVoteSiteHistory = Main.getVoteStatisticsManager().getPlayerVoteSiteHistory(player.getUniqueId(), voteSite.getService_site());
+
+
         if (playerVoteSiteHistory != null) {
             String voteTimestamp = playerVoteSiteHistory.getTimestamp();
-                long voteTimestampAsLong = Long.parseLong(voteTimestamp);
-                Instant start = Instant.ofEpochMilli(voteTimestampAsLong);
-                Instant finish = Instant.now();
+            long voteTimestampAsLong = Long.parseLong(voteTimestamp);
+
+            Instant start = Instant.ofEpochSecond(voteTimestampAsLong);
+            Instant finish = Instant.now();
 
             timeElapsed = Duration.between(start, finish).toMinutes();
-            }
-        long timeLeft = voteCooldown - timeElapsed;
-        if(timeLeft < 0) timeLeft = 0;
+        }
 
+        long timeLeft = voteCooldown - timeElapsed;
+        if (timeLeft < 0) timeLeft = 0;
         return timeLeft;
     }
 
