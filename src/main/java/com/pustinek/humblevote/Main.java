@@ -259,6 +259,7 @@ public final class Main extends JavaPlugin {
                 Collections.singletonList(getConfigManager().getPluginMessagePrefix()) // Chat prefix to use with Message#prefix(), could of course come from the config file
         );
 
+
     }
 
     @Override

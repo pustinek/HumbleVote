@@ -53,14 +53,13 @@ public class VoteReminderManager extends Manager {
         boolean votedOnAllSites = false;
         if(configManager.isDisableOnAllVotes()) {
             ArrayList<VoteSite> voteSites = Main.getVoteSitesManager().getVoteSites();
-            votedOnAllSites = voteSites.stream().anyMatch(vs -> Utils.getPlayerVoteSiteCooldown(player, vs) > 0);
+
+            votedOnAllSites = voteSites.stream().noneMatch(vs ->
+                    (Utils.getPlayerVoteSiteCooldown(player, vs) == 0 && !vs.getService_site().equalsIgnoreCase("null")));
         }
 
         if(!votedOnAllSites)
             player.sendMessage(ChatUtils.chatColor(configManager.getVoteReminderMessage()));
     }
-
-
-
 
 }

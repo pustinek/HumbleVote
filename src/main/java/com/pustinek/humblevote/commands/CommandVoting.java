@@ -8,7 +8,6 @@ import org.bukkit.entity.Player;
 
 public class CommandVoting extends CommandDefault {
 
-
     CommandVoting(Main plugin) {
         super(plugin);
     }
