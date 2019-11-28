@@ -61,12 +61,25 @@ public class PlayerVoteStatisticsManager extends Manager {
     }
 
 
+    public ConcurrentHashMap<UUID, PlayerVoteStats> getPlayerVoteStatsConcurrentHashMap() {
+        return playerVoteStatsConcurrentHashMap;
+    }
+
     /**
-     * Get server playerVoteStats list
+     * Get all players names that have a voteStat entry
      **/
-    public List<String> getPlayerVoteStats() {
+    public List<String> getPlayerNamesThatHaveVoteStats() {
         return playerVoteStatsConcurrentHashMap.values().stream().map(PlayerVoteStats::getPlayerLastUsername).collect(Collectors.toList());
     }
+
+
+
+
+
+
+
+
+
 
 
     /**

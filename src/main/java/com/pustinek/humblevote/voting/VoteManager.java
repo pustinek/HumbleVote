@@ -56,7 +56,7 @@ public class VoteManager extends Manager {
      */
     public void resolvePlayerQueuedVotes(Player player) {
 
-        ArrayList<QueuedVote> cacheVotes = queuedVotesHashMap.get(player.getName());
+        ArrayList<QueuedVote> cacheVotes = queuedVotesHashMap.get(player.getName().toLowerCase());
 
         if(cacheVotes == null) {
             cacheVotes = new ArrayList<>();
@@ -116,7 +116,7 @@ public class VoteManager extends Manager {
      */
     public synchronized void addVoteToCache(QueuedVote vote) {
         String username = vote.getUsername();
-        queuedVotesHashMap.computeIfAbsent(username, k -> new ArrayList<>()).add(vote);
+        queuedVotesHashMap.computeIfAbsent(username.toLowerCase(), k -> new ArrayList<>()).add(vote);
     }
 
     /**

@@ -91,12 +91,15 @@ public class PlayerVoteStats {
         switch (type) {
             case ADD:
                 totalVoteCount += value;
+                currentMonthlyVoteStats.setVoteCount(currentMonthlyVoteStats.getVoteCount() + value);
                 break;
             case SET:
                 totalVoteCount = value;
+                currentMonthlyVoteStats.setVoteCount(value);
                 break;
             case SUBTRACT:
                 totalVoteCount -= value;
+                currentMonthlyVoteStats.setVoteCount(currentMonthlyVoteStats.getVoteCount() - value);
                 break;
         }
         needsDatabaseSync = true;
@@ -217,13 +220,17 @@ public class PlayerVoteStats {
         int voteCount;
         YearMonth date;
 
-        MonthlyStats(Integer voteCount, YearMonth date) {
+        MonthlyStats(int voteCount, YearMonth date) {
             this.voteCount = voteCount;
             this.date = date;
         }
 
         int getVoteCount() {
             return voteCount;
+        }
+
+        void setVoteCount(int value) {
+            voteCount = value;
         }
 
         void incrementVoteCount() {

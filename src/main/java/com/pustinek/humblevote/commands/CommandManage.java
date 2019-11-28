@@ -39,21 +39,23 @@ public class CommandManage extends CommandDefault {
         String playerName = args[1];
         String what = args[2];
         String type = args[3];
-        String successKey = "manage-success";
+        String successKey;
         int value = Integer.parseInt(args[4]);
         int prevValue = 0;
         int newValue = 0;
+
+
+
         PlayerVoteStats playerVoteStats = Main.getVoteStatisticsManager().getPlayerVoteStats(playerName);
 
-        if(playerVoteStats == null) {
+        if(playerVoteStats == null && !playerName.equalsIgnoreCase("*")) {
             Main.messageNoPrefix(sender, "manage-noPlayerStats", playerName);
             return;
         }
 
-        if(what.equalsIgnoreCase("votes")){
+        if(what.equalsIgnoreCase("votes") && playerVoteStats != null){
             prevValue = playerVoteStats.getTotalVoteCount();
-
-        }else{
+        }else if(what.equalsIgnoreCase("points") && playerVoteStats != null){
             prevValue = playerVoteStats.getVotingPoints();
         }
 
@@ -61,9 +63,11 @@ public class CommandManage extends CommandDefault {
             case "add":
                 successKey = "manage-successAdd";
                 if(what.equalsIgnoreCase("votes")) {
-                    newValue = playerVoteStats.modifyVoteCount(MODIFICATION_TYPE.ADD, value);
+                    //newValue = playerVoteStats.modifyVoteCount(MODIFICATION_TYPE.ADD, value);
+                    newValue = modifyPlayerVoteStats(playerVoteStats, MODIFICATION_TYPE.ADD,'v', value);
                 }else if(what.equalsIgnoreCase("points")) {
-                    newValue = playerVoteStats.modifyVotePoints(MODIFICATION_TYPE.ADD, value);
+                    //newValue = playerVoteStats.modifyVotePoints(MODIFICATION_TYPE.ADD, value);
+                    newValue = modifyPlayerVoteStats(playerVoteStats, MODIFICATION_TYPE.ADD,'p', value);
                 }else {
                     Main.messageNoPrefix(sender, "manage-help");
                     return;
@@ -72,9 +76,12 @@ public class CommandManage extends CommandDefault {
             case "set":
                 successKey = "manage-successSet";
                 if(what.equalsIgnoreCase("votes")) {
-                    newValue = playerVoteStats.modifyVoteCount(MODIFICATION_TYPE.SET, value);
+                    //newValue = playerVoteStats.modifyVoteCount(MODIFICATION_TYPE.SET, value);
+                    newValue = modifyPlayerVoteStats(playerVoteStats, MODIFICATION_TYPE.SET,'v', value);
+
                 }else if(what.equalsIgnoreCase("points")) {
-                    newValue = playerVoteStats.modifyVotePoints(MODIFICATION_TYPE.SET, value);
+                    //newValue = playerVoteStats.modifyVotePoints(MODIFICATION_TYPE.SET, value);
+                    newValue = modifyPlayerVoteStats(playerVoteStats, MODIFICATION_TYPE.SET,'p', value);
                 }else {
                     Main.messageNoPrefix(sender, "manage-help");
                     return;
@@ -83,9 +90,11 @@ public class CommandManage extends CommandDefault {
             case "subtract":
                 successKey = "manage-successSubtract";
                 if(what.equalsIgnoreCase("votes")) {
-                    newValue = playerVoteStats.modifyVoteCount(MODIFICATION_TYPE.SUBTRACT, value);
+                    // newValue = playerVoteStats.modifyVoteCount(MODIFICATION_TYPE.SUBTRACT, value);
+                    newValue = modifyPlayerVoteStats(playerVoteStats, MODIFICATION_TYPE.SUBTRACT,'v', value);
                 }else if(what.equalsIgnoreCase("points")) {
-                    newValue = playerVoteStats.modifyVotePoints(MODIFICATION_TYPE.SUBTRACT, value);
+                    // newValue = playerVoteStats.modifyVotePoints(MODIFICATION_TYPE.SUBTRACT, value);
+                    newValue = modifyPlayerVoteStats(playerVoteStats, MODIFICATION_TYPE.SUBTRACT,'p', value);
                 }else {
                     Main.messageNoPrefix(sender, "manage-help");
                     return;
@@ -106,12 +115,36 @@ public class CommandManage extends CommandDefault {
 
     }
 
+    private int modifyPlayerVoteStats(PlayerVoteStats playerVoteStats, MODIFICATION_TYPE type,char whatToModify, int value) {
+        if(playerVoteStats == null) {
+            // All players
+            for(PlayerVoteStats pvs : Main.getVoteStatisticsManager().getPlayerVoteStatsConcurrentHashMap().values()) {
+                if(whatToModify == 'p'){
+                    pvs.modifyVotePoints(type,value);
+                }else {
+                    pvs.modifyVoteCount(type,value);
+                }
+            }
+
+        }else{
+            if(whatToModify == 'p'){
+                return playerVoteStats.modifyVotePoints(type,value);
+            }else {
+                return playerVoteStats.modifyVoteCount(type,value);
+            }
+        }
+
+        return -1;
+    }
+
+
     @Override
     public List<String> getTabCompleteList(int toComplete, String[] start, CommandSender sender) {
         List<String> results = new ArrayList<>();
 
         if(toComplete == 2) {
-            results.addAll(Main.getVoteStatisticsManager().getPlayerVoteStats());
+            results.addAll(Main.getVoteStatisticsManager().getPlayerNamesThatHaveVoteStats());
+            results.add("*");
         }
         if(toComplete == 3) {
             results.add("points");

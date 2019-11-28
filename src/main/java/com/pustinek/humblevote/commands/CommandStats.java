@@ -96,7 +96,7 @@ public class CommandStats  extends CommandDefault{
         }
 
         if(toComplete == 3 && start.length == 3 && start[2].equalsIgnoreCase("player")) {
-            results.addAll(Main.getVoteStatisticsManager().getPlayerVoteStats());
+            results.addAll(Main.getVoteStatisticsManager().getPlayerNamesThatHaveVoteStats());
         }
 
 
