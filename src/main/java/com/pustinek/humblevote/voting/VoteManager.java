@@ -115,8 +115,8 @@ public class VoteManager extends Manager {
      * @param vote vote to be added to queue/cache
      */
     public synchronized void addVoteToCache(QueuedVote vote) {
-        String username = vote.getUsername();
-        queuedVotesHashMap.computeIfAbsent(username.toLowerCase(), k -> new ArrayList<>()).add(vote);
+        String username = vote.getUsername().toLowerCase();
+        queuedVotesHashMap.computeIfAbsent(username, k -> new ArrayList<>()).add(vote);
     }
 
     /**

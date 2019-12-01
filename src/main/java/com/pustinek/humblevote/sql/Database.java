@@ -173,7 +173,7 @@ public abstract class Database {
     }
 
     public void getPlayerQueuedVotes(String username, Callback<ArrayList<QueuedVote>> callback) {
-        final String query = "SELECT * FROM " + tableQueuedVotes + " WHERE player_username = ?";
+        final String query = "SELECT * FROM " + tableQueuedVotes + " WHERE lower(player_username) = lower(?)";
 
         new BukkitRunnable() {
             @Override
@@ -181,7 +181,7 @@ public abstract class Database {
                 try (Connection con = dataSource.getConnection();
                      PreparedStatement ps = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
 
-                    ps.setString(1, username);
+                    ps.setString(1, username.toLowerCase());
 
                     ResultSet rs = ps.executeQuery();
 
@@ -194,7 +194,7 @@ public abstract class Database {
                         String localTimestamp = rs.getString("local_timestamp");
                         String timestamp = rs.getString("timestamp");
 
-                        QueuedVote queuedVote = new QueuedVote(address, serviceName, username, timestamp, localTimestamp, false);
+                        QueuedVote queuedVote = new QueuedVote(address, serviceName, username.toLowerCase(), timestamp, localTimestamp, false);
 
                         ResultSet keyRs = ps.getGeneratedKeys();
 
@@ -222,7 +222,7 @@ public abstract class Database {
     }
 
     public void deletePlayerQueuedVotes(String userName, ArrayList<QueuedVote> playerQueuedVotes, Callback<Integer> callback) {
-        final String query = "DELETE FROM " + tableQueuedVotes + " WHERE id = ? AND player_username = ?";
+        final String query = "DELETE FROM " + tableQueuedVotes + " WHERE id = ? AND lower(player_username) = lower(?)";
 
         new BukkitRunnable() {
 
