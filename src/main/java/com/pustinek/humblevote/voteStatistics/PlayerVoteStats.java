@@ -69,17 +69,29 @@ public class PlayerVoteStats {
         }
     }
 
-    void incrementPlayerVote() {
+    void incrementMonthlyPlayerVoteCount(YearMonth yearMonth) {
+
+        monthlyStatisticsCheck();
+        MonthlyStats stats = monthlyVoteStatistics.stream().filter(monthlyStats -> monthlyStats.getDate().equals(yearMonth)).findAny().orElse(null);
+        if (stats == null) {
+            MonthlyStats monthlyStats = new MonthlyStats(0, yearMonth);
+            monthlyVoteStatistics.add(monthlyStats);
+            stats = monthlyStats;
+        }
+
+        stats.incrementVoteCount();
+    }
+
+    void incrementTotalPlayerVoteCount() {
         totalVoteCount += 1;
         // Before incrementing check if it's current month
-        monthlyStatisticsCheck();
-        currentMonthlyVoteStats.incrementVoteCount();
+
 
         // Voting point check
         Player player = Bukkit.getPlayer(playerUUID);
         int pointsToGive = 1;
-        if(player != null)
-           pointsToGive = Utils.votePointCalculator(player);
+        if (player != null)
+            pointsToGive = Utils.votePointCalculator(player);
 
         points += pointsToGive;
 
@@ -130,7 +142,7 @@ public class PlayerVoteStats {
             JsonArray monthlyStatsObj = JsonParser.object().from(json).getArray("months");
 
             monthlyStatsObj.forEach(a -> {
-                Integer number;
+                int number;
                 String dateString;
                 try {
                     number = JsonParser.object().from(a.toString()).getInt("total");

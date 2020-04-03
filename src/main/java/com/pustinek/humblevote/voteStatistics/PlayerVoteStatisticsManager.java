@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Instant;
 import java.time.YearMonth;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -133,7 +134,7 @@ public class PlayerVoteStatisticsManager extends Manager {
 
 
     /**
-     * Process player vote and determine what the appropriate statistics
+     * Process player vote for statistics (monthly, total)
      *
      * @param player player object of which to check
      */
@@ -146,7 +147,12 @@ public class PlayerVoteStatisticsManager extends Manager {
         addVoteSiteHistory(playerVoteSiteHistory);
 
         // Increment the vote count by one
-        playerVoteStats.incrementPlayerVote();
+        playerVoteStats.incrementTotalPlayerVoteCount();
+
+        // Monthly increment
+        Instant instant = Instant.ofEpochMilli(Long.parseLong(vote.getTimestamp()));
+        YearMonth yearMonth = Main.getTimeManager().InstantToYearMonth(instant);
+        playerVoteStats.incrementMonthlyPlayerVoteCount(yearMonth);
 
     }
 
